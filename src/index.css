@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #0d1117;
+}
+
+.hero-glow {
+  box-shadow: 0 0 80px 20px rgba(236, 72, 153, 0.25);
+}
+
+.text-glow {
+  text-shadow: 0 0 15px rgba(236, 72, 153, 0.7), 0 0 25px rgba(139, 92, 246, 0.5);
+}

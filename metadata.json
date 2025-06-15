@@ -1,0 +1,6 @@
+{
+  "name": "V1.0 - Texotia Caption AI",
+  "description": "An application that uses AI to generate creative captions and overlays them onto your uploaded images. It recognizes image content, allows caption style/length customization, and lets you save the final image. Enjoy!",
+  "requestFramePermissions": [],
+  "prompt": ""
+}
