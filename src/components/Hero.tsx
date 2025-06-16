@@ -13,8 +13,8 @@ const Hero = () => (
           Upload your image and let our advanced AI analyze the content, describe the scene, and generate the perfect caption. Effortlessly.
         </p>
         <div className="flex justify-center space-x-4">
-          <a href="#" className="bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 px-8 rounded-lg transition-colors">Try The App</a>
-          <a href="#" className="bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-8 rounded-lg transition-colors">View Plans</a>
+          <a href="caption-tool" className="bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 px-8 rounded-lg transition-colors">Try The App</a>
+          <a href="subscribe" className="bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-8 rounded-lg transition-colors">View Plans</a>
         </div>
       </div>
     </div>
