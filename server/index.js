@@ -3,27 +3,37 @@ import express from 'express';
 import Stripe from 'stripe';
 import cors from 'cors';
 import dotenv from 'dotenv';
-dotenv.config({ path: '.env.local' });
+
+dotenv.config(); // Loads from .env or .env.local depending on environment
+
 const app = express();
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY); // 🔐 Your secret key
 
-const YOUR_DOMAIN = 'https://picturecaptionai.netlify.app';
+// ✅ Ensure your environment variable is defined
+if (!process.env.STRIPE_SECRET_KEY) {
+  throw new Error('❌ STRIPE_SECRET_KEY is missing in .env');
+}
 
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+const YOUR_DOMAIN = 'https://picturecaption.app';
+
+// ✅ Production CORS configuration
 app.use(cors({
-  origin: ['http://localhost:5173', 'https://picturecaptionai.netlify.app'],
+  origin: ['http://localhost:5173', 'https://picturecaption.app'],
   methods: ['POST', 'GET'],
-  credentials: true
 }));
+
 app.use(express.json());
 
 app.post('/create-checkout-session', async (req, res) => {
   try {
     const { plan, amount } = req.body;
 
-    // 1. Handle custom token purchase
+    // ✅ Handle custom token purchase
     if (plan === 'custom') {
       const usd = parseFloat(amount);
-      if (isNaN(usd) || usd < 1) return res.status(400).json({ error: 'Minimum $1 required' });
+      if (isNaN(usd) || usd < 1) {
+        return res.status(400).json({ error: 'Minimum $1 required' });
+      }
 
       const cents = Math.round(usd * 100);
       const tokens = Math.floor(usd * 100); // 1$ = 100 tokens
@@ -43,14 +53,14 @@ app.post('/create-checkout-session', async (req, res) => {
         cancel_url: `${YOUR_DOMAIN}/subscribe?cancelled=true`,
         metadata: {
           type: 'custom',
-          tokens: tokens.toString()
-        }
+          tokens: tokens.toString(),
+        },
       });
 
       return res.json({ url: session.url });
     }
 
-    // 2. Standard plans
+    // ✅ Handle standard plans
     const plans = {
       monthly: { price: 900, name: 'Monthly Plan' },
       yearly: { price: 8900, name: 'Yearly Plan' },
@@ -60,8 +70,7 @@ app.post('/create-checkout-session', async (req, res) => {
 
     const selected = plans[plan];
     if (!selected) {
-      console.error('❌ Invalid plan:', plan);
-      return res.status(400).json({ error: 'Invalid plan' });
+      return res.status(400).json({ error: 'Invalid plan selected' });
     }
 
     const successUrl = selected.tokens
@@ -84,18 +93,18 @@ app.post('/create-checkout-session', async (req, res) => {
       metadata: {
         type: selected.tokens ? 'token_pack' : 'subscription',
         tokens: selected.tokens ? selected.tokens.toString() : '0',
-      }
+      },
     });
 
     console.log('✅ Checkout session created:', session.url);
     res.json({ url: session.url });
-
   } catch (error) {
     console.error('❌ Stripe session error:', error.message);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-app.listen(4242, () => {
-  console.log('✅ Server running on http://localhost:4242');
+const PORT = process.env.PORT || 4242;
+app.listen(PORT, () => {
+  console.log(`✅ Server running on port ${PORT}`);
 });
