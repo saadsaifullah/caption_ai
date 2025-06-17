@@ -4,43 +4,38 @@ import Stripe from 'stripe';
 import cors from 'cors';
 import dotenv from 'dotenv';
 
-dotenv.config(); // Loads from .env or .env.local depending on environment
+dotenv.config({ path: '.env.local' });
 
 const app = express();
-
-// ✅ Ensure your environment variable is defined
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('❌ STRIPE_SECRET_KEY is missing in .env');
-}
-
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const YOUR_DOMAIN = 'https://picturecaption.app';
 
-// ✅ Production CORS configuration
-app.use(cors({
-  origin: 'https://picturecaption.app', // ✅ Only allow your frontend domain
-  methods: ['POST', 'GET'],
-}));
+// ✅ Allow only your frontend domain
+const corsOptions = {
+  origin: YOUR_DOMAIN,
+  methods: ['POST', 'GET', 'OPTIONS'],
+  allowedHeaders: ['Content-Type'],
+  credentials: true
+};
+
+// ✅ Apply CORS middleware
+app.use(cors(corsOptions));
+
+// ✅ Support preflight requests (for OPTIONS)
+app.options('/create-checkout-session', cors(corsOptions));
 
 app.use(express.json());
-app.options('/create-checkout-session', cors({
-  origin: 'https://picturecaption.app',
-  methods: ['POST', 'GET'],
-  credentials: true
-}));
+
 app.post('/create-checkout-session', async (req, res) => {
   try {
     const { plan, amount } = req.body;
 
-    // ✅ Handle custom token purchase
     if (plan === 'custom') {
       const usd = parseFloat(amount);
-      if (isNaN(usd) || usd < 1) {
-        return res.status(400).json({ error: 'Minimum $1 required' });
-      }
+      if (isNaN(usd) || usd < 1) return res.status(400).json({ error: 'Minimum $1 required' });
 
       const cents = Math.round(usd * 100);
-      const tokens = Math.floor(usd * 100); // 1$ = 100 tokens
+      const tokens = Math.floor(usd * 100);
 
       const session = await stripe.checkout.sessions.create({
         payment_method_types: ['card'],
@@ -57,14 +52,13 @@ app.post('/create-checkout-session', async (req, res) => {
         cancel_url: `${YOUR_DOMAIN}/subscribe?cancelled=true`,
         metadata: {
           type: 'custom',
-          tokens: tokens.toString(),
-        },
+          tokens: tokens.toString()
+        }
       });
 
       return res.json({ url: session.url });
     }
 
-    // ✅ Handle standard plans
     const plans = {
       monthly: { price: 900, name: 'Monthly Plan' },
       yearly: { price: 8900, name: 'Yearly Plan' },
@@ -74,7 +68,8 @@ app.post('/create-checkout-session', async (req, res) => {
 
     const selected = plans[plan];
     if (!selected) {
-      return res.status(400).json({ error: 'Invalid plan selected' });
+      console.error('❌ Invalid plan:', plan);
+      return res.status(400).json({ error: 'Invalid plan' });
     }
 
     const successUrl = selected.tokens
@@ -97,18 +92,18 @@ app.post('/create-checkout-session', async (req, res) => {
       metadata: {
         type: selected.tokens ? 'token_pack' : 'subscription',
         tokens: selected.tokens ? selected.tokens.toString() : '0',
-      },
+      }
     });
 
     console.log('✅ Checkout session created:', session.url);
     res.json({ url: session.url });
+
   } catch (error) {
     console.error('❌ Stripe session error:', error.message);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-const PORT = process.env.PORT || 4242;
-app.listen(PORT, () => {
-  console.log(`✅ Server running on port ${PORT}`);
+app.listen(4242, () => {
+  console.log('✅ Server running on http://localhost:4242');
 });
