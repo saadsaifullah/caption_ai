@@ -1,3 +1,4 @@
+// server/index.js
 import express from 'express';
 import Stripe from 'stripe';
 import cors from 'cors';
@@ -9,23 +10,28 @@ const app = express();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const YOUR_DOMAIN = 'https://picturecaption.app';
 
-// ✅ CORS options
-const corsOptions = {
-  origin: YOUR_DOMAIN,
-  methods: ['POST', 'GET', 'OPTIONS'],
+// ✅ Proper CORS middleware
+app.use(cors({
+  origin: YOUR_DOMAIN, // You can also use origin: true if deploying to multiple subdomains
+  methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type'],
-  credentials: true
-};
+  credentials: true,
+}));
 
-// ✅ Middleware
-app.use(cors(corsOptions));
-app.use(express.json());
-
-// ✅ Preflight OPTIONS handler for CORS
-app.options('/create-checkout-session', cors(corsOptions), (req, res) => {
-  res.sendStatus(200); // <- Necessary for browsers to continue
+// ✅ Important: Handle preflight requests manually
+app.options('*', cors({
+  origin: YOUR_DOMAIN,
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type'],
+  credentials: true,
+}), (req, res) => {
+  res.sendStatus(200);
 });
+
 app.use(express.json());
+
+// ✅ Your create-checkout-session logic here...
+
 
 app.post('/create-checkout-session', async (req, res) => {
   try {
