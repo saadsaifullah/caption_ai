@@ -3,46 +3,46 @@ import express from 'express';
 import Stripe from 'stripe';
 import cors from 'cors';
 import dotenv from 'dotenv';
-
 dotenv.config({ path: '.env.local' });
 
 const app = express();
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-const YOUR_DOMAIN = 'https://picturecaption.app';
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY); // 🔐 Stripe Secret Key
 
-// ✅ Proper CORS middleware
+const YOUR_FRONTEND_DOMAIN = 'https://picturecaption.app';
+
+// --- CORS Setup ---
 app.use(cors({
-  origin: YOUR_DOMAIN, // You can also use origin: true if deploying to multiple subdomains
+  origin: YOUR_FRONTEND_DOMAIN,
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type'],
-  credentials: true,
+  credentials: true
 }));
 
-// ✅ Important: Handle preflight requests manually
-app.options('*', cors({
-  origin: YOUR_DOMAIN,
-  methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type'],
-  credentials: true,
-}), (req, res) => {
+// Explicitly handle OPTIONS preflight requests
+app.options('*', (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', YOUR_FRONTEND_DOMAIN);
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.sendStatus(200);
 });
 
 app.use(express.json());
 
-// ✅ Your create-checkout-session logic here...
-
-
+// --- Main Endpoint ---
 app.post('/create-checkout-session', async (req, res) => {
   try {
     const { plan, amount } = req.body;
 
+    // Custom token purchase
     if (plan === 'custom') {
       const usd = parseFloat(amount);
-      if (isNaN(usd) || usd < 1) return res.status(400).json({ error: 'Minimum $1 required' });
+      if (isNaN(usd) || usd < 1) {
+        return res.status(400).json({ error: 'Minimum $1 required' });
+      }
 
       const cents = Math.round(usd * 100);
-      const tokens = Math.floor(usd * 100);
+      const tokens = Math.floor(usd * 100); // $1 = 100 tokens
 
       const session = await stripe.checkout.sessions.create({
         payment_method_types: ['card'],
@@ -55,8 +55,8 @@ app.post('/create-checkout-session', async (req, res) => {
           },
           quantity: 1,
         }],
-        success_url: `${YOUR_DOMAIN}/success?tokens=${tokens}`,
-        cancel_url: `${YOUR_DOMAIN}/subscribe?cancelled=true`,
+        success_url: `${YOUR_FRONTEND_DOMAIN}/success?tokens=${tokens}`,
+        cancel_url: `${YOUR_FRONTEND_DOMAIN}/subscribe?cancelled=true`,
         metadata: {
           type: 'custom',
           tokens: tokens.toString()
@@ -66,6 +66,7 @@ app.post('/create-checkout-session', async (req, res) => {
       return res.json({ url: session.url });
     }
 
+    // Standard plans
     const plans = {
       monthly: { price: 900, name: 'Monthly Plan' },
       yearly: { price: 8900, name: 'Yearly Plan' },
@@ -80,8 +81,8 @@ app.post('/create-checkout-session', async (req, res) => {
     }
 
     const successUrl = selected.tokens
-      ? `${YOUR_DOMAIN}/success?tokens=${selected.tokens}`
-      : `${YOUR_DOMAIN}/success`;
+      ? `${YOUR_FRONTEND_DOMAIN}/success?tokens=${selected.tokens}`
+      : `${YOUR_FRONTEND_DOMAIN}/success`;
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -95,7 +96,7 @@ app.post('/create-checkout-session', async (req, res) => {
         quantity: 1,
       }],
       success_url: successUrl,
-      cancel_url: `${YOUR_DOMAIN}/subscribe?cancelled=true`,
+      cancel_url: `${YOUR_FRONTEND_DOMAIN}/subscribe?cancelled=true`,
       metadata: {
         type: selected.tokens ? 'token_pack' : 'subscription',
         tokens: selected.tokens ? selected.tokens.toString() : '0',
@@ -111,6 +112,8 @@ app.post('/create-checkout-session', async (req, res) => {
   }
 });
 
-app.listen(4242, () => {
-  console.log('✅ Server running on http://localhost:4242');
+// --- Start Server ---
+const PORT = process.env.PORT || 4242;
+app.listen(PORT, () => {
+  console.log(`✅ Server running on port ${PORT}`);
 });
