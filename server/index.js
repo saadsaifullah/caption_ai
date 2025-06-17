@@ -1,4 +1,3 @@
-// server/index.js
 import express from 'express';
 import Stripe from 'stripe';
 import cors from 'cors';
@@ -10,7 +9,7 @@ const app = express();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const YOUR_DOMAIN = 'https://picturecaption.app';
 
-// ✅ Allow only your frontend domain
+// ✅ CORS options
 const corsOptions = {
   origin: YOUR_DOMAIN,
   methods: ['POST', 'GET', 'OPTIONS'],
@@ -18,12 +17,14 @@ const corsOptions = {
   credentials: true
 };
 
-// ✅ Apply CORS middleware
+// ✅ Middleware
 app.use(cors(corsOptions));
+app.use(express.json());
 
-// ✅ Support preflight requests (for OPTIONS)
-app.options('/create-checkout-session', cors(corsOptions));
-
+// ✅ Preflight OPTIONS handler for CORS
+app.options('/create-checkout-session', cors(corsOptions), (req, res) => {
+  res.sendStatus(200); // <- Necessary for browsers to continue
+});
 app.use(express.json());
 
 app.post('/create-checkout-session', async (req, res) => {
