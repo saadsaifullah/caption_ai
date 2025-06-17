@@ -15,6 +15,7 @@
     "clsx": "^2.1.1",
     "clx": "^1.0.0",
     "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "firebase": "^11.9.1",
     "lucide-react": "^0.511.0",
@@ -25,6 +26,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
+    "@types/react-dom": "^19.1.6",
     "@types/react-router-dom": "^5.3.3",
     "concurrently": "^9.1.2",
     "typescript": "~5.7.2",

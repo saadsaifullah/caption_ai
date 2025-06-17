@@ -2,16 +2,15 @@
 import express from 'express';
 import Stripe from 'stripe';
 import cors from 'cors';
-import 'dotenv/config';
-dotenv.config();
-
+import dotenv from 'dotenv';
+dotenv.config({ path: '.env.local' });
 const app = express();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY); // 🔐 Your secret key
 
-const YOUR_DOMAIN = 'http://localhost:5173';
+const YOUR_DOMAIN = 'https://picturecaptionai.netlify.app';
 
 app.use(cors({
-  origin: YOUR_DOMAIN,
+  origin: ['http://localhost:5173', 'https://picturecaptionai.netlify.app'],
   methods: ['POST', 'GET'],
   credentials: true
 }));
