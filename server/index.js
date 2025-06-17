@@ -18,12 +18,16 @@ const YOUR_DOMAIN = 'https://picturecaption.app';
 
 // ✅ Production CORS configuration
 app.use(cors({
-  origin: ['http://localhost:5173', 'https://picturecaption.app'],
+  origin: 'https://picturecaption.app', // ✅ Only allow your frontend domain
   methods: ['POST', 'GET'],
 }));
 
 app.use(express.json());
-
+app.options('/create-checkout-session', cors({
+  origin: 'https://picturecaption.app',
+  methods: ['POST', 'GET'],
+  credentials: true
+}));
 app.post('/create-checkout-session', async (req, res) => {
   try {
     const { plan, amount } = req.body;
