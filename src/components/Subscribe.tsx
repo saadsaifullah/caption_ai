@@ -15,18 +15,20 @@ const Subscribe: React.FC = () => {
   const [customAmount, setCustomAmount] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const API_BASE = 'https://caption-api-server.onrender.com';
+
   const handleCheckout = async (planId: string) => {
     try {
-    const res = await fetch('https://caption-api-server.onrender.com/create-checkout-session', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ plan: planId })
-});
+      const res = await fetch(`${API_BASE}/create-checkout-session`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan: planId })
+      });
 
       const data = await res.json();
       if (data?.url) {
-        // Store plan info in Firestore before redirect
-        if (user) {
+        // Save plan in Firestore before redirect (only for subscriptions)
+        if (user && (planId === 'monthly' || planId === 'yearly')) {
           const userRef = doc(db, 'users', user.uid);
           const planData = {
             plan: planId,
@@ -34,6 +36,7 @@ const Subscribe: React.FC = () => {
               ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
               : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
           };
+
           const userSnap = await getDoc(userRef);
           if (userSnap.exists()) {
             await updateDoc(userRef, planData);
@@ -41,6 +44,7 @@ const Subscribe: React.FC = () => {
             await setDoc(userRef, { ...planData });
           }
         }
+
         window.location.href = data.url;
       } else {
         alert('Something went wrong. Please try again.');
@@ -60,11 +64,11 @@ const Subscribe: React.FC = () => {
 
     setLoading(true);
     try {
-      const res = await fetch('https://caption-api-server.onrender.com/create-checkout-session', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ plan: 'custom', amount })
-});
+      const res = await fetch(`${API_BASE}/create-checkout-session`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan: 'custom', amount })
+      });
 
       const data = await res.json();
       if (data?.url) {
@@ -83,6 +87,7 @@ const Subscribe: React.FC = () => {
   return (
     <div className="text-white font-['Inter'] bg-[#0d1117] min-h-screen">
       <main className="container mx-auto px-6 py-12 md:py-20">
+        {/* Limit Reached Message */}
         {limitMessage && (
           <div className="max-w-2xl mx-auto mb-8 p-4 bg-yellow-200 text-yellow-800 rounded-lg border border-yellow-400 text-center shadow">
             ⚠️ {decodeURIComponent(limitMessage)}
@@ -94,6 +99,7 @@ const Subscribe: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-5xl mx-auto items-start">
+          {/* Monthly Plan */}
           <PricingCard
             title="Monthly"
             price="$9"
@@ -105,18 +111,25 @@ const Subscribe: React.FC = () => {
             onClick={() => handleCheckout('monthly')}
           />
 
+          {/* Yearly Plan */}
           <PricingCard
             title="Yearly"
             price="$89"
             original="$168"
             period="/year"
-            features={["100 Generations/Day", "Daily Limit Reset", "Priority Support", "Early Access to New Features"]}
+            features={[
+              "100 Generations/Day",
+              "Daily Limit Reset",
+              "Priority Support",
+              "Early Access to New Features"
+            ]}
             buttonLabel="Choose Yearly"
             color="pink"
             bestValue
             onClick={() => handleCheckout('yearly')}
           />
 
+          {/* Token Packs */}
           <div className="bg-[#161b22] border border-gray-700 rounded-2xl p-8 h-full flex flex-col hover:scale-105 hover:shadow-2xl hover:shadow-teal-500/20 transition-all duration-300 ease-in-out">
             <h3 className="text-2xl font-semibold mb-6">Token Packs</h3>
             <div className="space-y-6 flex-grow">
@@ -138,6 +151,7 @@ const Subscribe: React.FC = () => {
               />
             </div>
 
+            {/* Custom Tokens */}
             <div className="mt-8">
               <h4 className="text-lg font-semibold mb-2">Custom Token Amount</h4>
               <input
