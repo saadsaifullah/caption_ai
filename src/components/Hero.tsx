@@ -128,7 +128,7 @@ const Hero = () => {
             ].map((step, index) => (
               <div
                 key={index}
-                className="transition-all duration-300 bg-[#161b22] hover:bg-[#1f2937] p-6 rounded-xl shadow-md hover:shadow-lg border border-gray-700"
+                className="transition-all duration-300 bg-[#161b22] p-6 rounded-xl shadow-md border border-gray-700 hover:scale-105 hover:border-pink-500 min-h-[300px] md:min-h-[320px] flex flex-col items-center justify-start"
               >
                 <div className="text-3xl mb-4">{step.icon}</div>
                 <h3 className="text-xl font-semibold mb-2">{step.title}</h3>
