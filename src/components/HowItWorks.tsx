@@ -106,7 +106,7 @@ const HowItWorks: React.FC = () => {
           <p className="text-gray-400 mt-2 max-w-xl mx-auto">
             Explore our subscription plans and enjoy Texotica Caption AI!
           </p>
-          <Link to="/subscibe" className="mt-8 inline-block bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 px-8 rounded-lg transition-colors">
+          <Link to="/subscribe" className="mt-8 inline-block bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 px-8 rounded-lg transition-colors">
             View Subscription Plans
           </Link>
         </section>
