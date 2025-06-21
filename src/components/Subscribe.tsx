@@ -19,7 +19,7 @@ const Subscribe: React.FC = () => {
 
   const handleCheckout = async (planId: string) => {
     try {
-      const res = await fetch(`${API_BASE}/create-checkout-session`, {
+     const res = await fetch('/.netlify/functions/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ plan: planId })
@@ -64,7 +64,7 @@ const Subscribe: React.FC = () => {
 
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/create-checkout-session`, {
+    const res = await fetch('/.netlify/functions/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ plan: 'custom', amount })

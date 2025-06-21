@@ -33,3 +33,6 @@ build/
 .DS_Store
 .env
 *.log
+
+# Local Netlify folder
+.netlify
