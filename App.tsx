@@ -14,6 +14,7 @@ import Login from './src/components/Login';
 import ProtectedRoute from './src/components/ProtectedRoute';
 import Success from './src/Success';
 import { AuthProvider } from './src/context/AuthContext';
+import Profile from './src/components/Profile';
 
 
 function App() {
@@ -36,7 +37,7 @@ function App() {
               <Route path="/signup" element={<Signup />} />
               <Route path="/login" element={<Login />} />
               <Route path="/success" element={<Success />} />
-
+<Route path="/profile" element={<Profile />} />
               {/* Protected Route */}
               <Route
                 path="/caption-tool"
