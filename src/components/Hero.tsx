@@ -16,7 +16,7 @@ const Hero = () => (
         />
 
         {/* Icon Glow Circle */}
-        <div className="rounded-full mx-auto w-48 h-48 md:w-64 md:h-64 mb-8 flex items-center justify-center bg-pink-500/10 border border-pink-500/20 shadow-2xl shadow-pink-500/10 backdrop-blur-md">
+        {/* <div className="rounded-full mx-auto w-48 h-48 md:w-64 md:h-64 mb-8 flex items-center justify-center bg-pink-500/10 border border-pink-500/20 shadow-2xl shadow-pink-500/10 backdrop-blur-md">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="w-24 h-24 md:w-32 md:h-32 text-pink-400 animate-pulse"
@@ -31,7 +31,7 @@ const Hero = () => (
               d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
             />
           </svg>
-        </div>
+        </div> */}
 
         {/* Heading */}
         <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-4 text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-400 to-indigo-500 drop-shadow-lg">
