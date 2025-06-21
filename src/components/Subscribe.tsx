@@ -15,11 +15,14 @@ const Subscribe: React.FC = () => {
   const [customAmount, setCustomAmount] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const API_BASE = 'https://caption-api-server.onrender.com';
-
   const handleCheckout = async (planId: string) => {
+    if (!user) {
+      alert('Please login first to buy a plan.');
+      return;
+    }
+
     try {
-     const res = await fetch('/.netlify/functions/create-checkout-session', {
+      const res = await fetch('/.netlify/functions/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ plan: planId })
@@ -27,8 +30,8 @@ const Subscribe: React.FC = () => {
 
       const data = await res.json();
       if (data?.url) {
-        // Save plan in Firestore before redirect (only for subscriptions)
-        if (user && (planId === 'monthly' || planId === 'yearly')) {
+        // Save plan info in Firestore before redirect (only for subscriptions)
+        if (planId === 'monthly' || planId === 'yearly') {
           const userRef = doc(db, 'users', user.uid);
           const planData = {
             plan: planId,
@@ -56,6 +59,11 @@ const Subscribe: React.FC = () => {
   };
 
   const handleCustomCheckout = async () => {
+    if (!user) {
+      alert('Please login first to buy tokens.');
+      return;
+    }
+
     const amount = parseFloat(customAmount);
     if (isNaN(amount) || amount < 1) {
       alert('Please enter a valid amount (minimum $1)');
@@ -64,7 +72,7 @@ const Subscribe: React.FC = () => {
 
     setLoading(true);
     try {
-    const res = await fetch('/.netlify/functions/create-checkout-session', {
+      const res = await fetch('/.netlify/functions/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ plan: 'custom', amount })
@@ -87,7 +95,6 @@ const Subscribe: React.FC = () => {
   return (
     <div className="text-white font-['Inter'] bg-[#0d1117] min-h-screen">
       <main className="container mx-auto px-6 py-12 md:py-20">
-        {/* Limit Reached Message */}
         {limitMessage && (
           <div className="max-w-2xl mx-auto mb-8 p-4 bg-yellow-200 text-yellow-800 rounded-lg border border-yellow-400 text-center shadow">
             ⚠️ {decodeURIComponent(limitMessage)}
@@ -151,7 +158,6 @@ const Subscribe: React.FC = () => {
               />
             </div>
 
-            {/* Custom Tokens */}
             <div className="mt-8">
               <h4 className="text-lg font-semibold mb-2">Custom Token Amount</h4>
               <input
