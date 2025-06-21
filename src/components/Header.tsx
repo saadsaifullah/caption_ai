@@ -1,14 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { signOut } from 'firebase/auth';
 import { auth, db } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
+import { FaUserCircle } from 'react-icons/fa';
 
 const Header = () => {
   const { user } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [isAccessRestricted, setIsAccessRestricted] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const checkAccess = async () => {
@@ -25,7 +29,6 @@ const Header = () => {
         const tokens = data.tokens || 0;
         const uploadCount = data.uploadCount || 0;
 
-        // Restrict access if: no plan AND tokens < 10 AND uploadCount >= 5
         setIsAccessRestricted(!hasPlan && tokens < 10 && uploadCount >= 5);
       }
     };
@@ -33,8 +36,20 @@ const Header = () => {
     checkAccess();
   }, [user]);
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const handleLogout = async () => {
     await signOut(auth);
+    navigate('/');
   };
 
   return (
@@ -53,9 +68,26 @@ const Header = () => {
           <Link to="/how-it-works" className="hover:text-purple-300">How To Use</Link>
 
           {user ? (
-            <button onClick={handleLogout} className="ml-4 px-4 py-1 border border-red-500 rounded hover:bg-red-600">
-              Logout
-            </button>
+            <div className="relative" ref={dropdownRef}>
+              <button
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+                className="ml-4 text-white text-2xl hover:text-purple-300"
+              >
+                <FaUserCircle />
+              </button>
+              {dropdownOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-white text-gray-800 rounded shadow-lg py-2 z-50">
+                  <Link to="/profile" className="block px-4 py-2 hover:bg-gray-100">👤 Profile</Link>
+                  <Link to="/change-password" className="block px-4 py-2 hover:bg-gray-100">🔒 Change Password</Link>
+                  <button
+                    onClick={handleLogout}
+                    className="block w-full text-left px-4 py-2 hover:bg-red-100 text-red-600"
+                  >
+                    🚪 Logout
+                  </button>
+                </div>
+              )}
+            </div>
           ) : (
             <>
               <Link to="/login" className="ml-4 px-4 py-1 border border-purple-500 rounded hover:bg-purple-600">Login</Link>
@@ -65,8 +97,7 @@ const Header = () => {
         </nav>
 
         <button className="md:hidden" onClick={() => setMenuOpen(!menuOpen)}>
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2"
-            viewBox="0 0 24 24">
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round"
               d={menuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
           </svg>
