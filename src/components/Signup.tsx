@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import {
   createUserWithEmailAndPassword,
-  sendEmailVerification
+  sendEmailVerification,
+  signOut
 } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { useNavigate, Link } from 'react-router-dom';
@@ -38,15 +39,19 @@ export default function Signup() {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // ✅ Correct way to send verification email
+      // Send email verification
       await sendEmailVerification(user);
 
+      // Store user in Firestore
       await setDoc(doc(db, 'users', user.uid), {
         name,
         email,
         uploadCount: 0,
         createdAt: new Date().toISOString()
       });
+
+      // ✅ Sign out immediately after sending verification
+      await signOut(auth);
 
       alert('✅ Verification email sent! Please verify your email before logging in.');
       navigate('/login');
@@ -61,7 +66,9 @@ export default function Signup() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#0d1117] px-4">
       <div className="w-full max-w-md bg-[#161b22] p-8 rounded-lg shadow-lg text-white">
-        <h2 className="text-3xl font-bold text-center text-pink-500 mb-6">Create an Account</h2>
+        <h2 className="text-3xl font-bold text-center text-pink-500 mb-6">
+          Create an Account
+        </h2>
         <div className="h-1 w-12 bg-pink-500 mx-auto mb-6 rounded-full" />
 
         {error && (
