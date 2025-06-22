@@ -27,15 +27,15 @@ import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 
 const CaptionTool: React.FC = () => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
 
-  // ✅ Redirect to login if user is not logged in
+  // Wait for auth initialization
   useEffect(() => {
-    if (!user) {
+    if (!loading && !user) {
       navigate('/login');
     }
-  }, [user, navigate]);
+  }, [user, loading, navigate]);
 
   const [uploadedImageFile, setUploadedImageFile] = useState<File | null>(null);
   const [imageBase64, setImageBase64] = useState<string | null>(null);
@@ -85,11 +85,7 @@ const CaptionTool: React.FC = () => {
   };
 
   const handleImageUpload = useCallback(async (file: File, base64: string) => {
-    if (!user) {
-      setError('Please log in to upload images.');
-      navigate('/login');
-      return;
-    }
+    if (!user) return;
 
     const userRef = doc(db, 'users', user.uid);
     const docSnap = await getDoc(userRef);
@@ -121,13 +117,8 @@ const CaptionTool: React.FC = () => {
       uploadCount: uploadCount + 1,
     };
 
-    if (!isPlanActive && tokens >= 10) {
-      newData.tokens = tokens - 10;
-    }
-
-    if (isPlanActive) {
-      newData[usageKey] = usedToday + 1;
-    }
+    if (!isPlanActive && tokens >= 10) newData.tokens = tokens - 10;
+    if (isPlanActive) newData[usageKey] = usedToday + 1;
 
     await updateDoc(userRef, newData);
 
@@ -196,6 +187,10 @@ const CaptionTool: React.FC = () => {
       (imageDescription && imageDescription.trim() !== '') ||
       (showSpicyImageMessage && inspirationText.trim() !== '')
     );
+
+  if (loading) {
+    return <div className="text-white text-center mt-12">Checking user session...</div>;
+  }
 
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100 p-4 md:p-8">
