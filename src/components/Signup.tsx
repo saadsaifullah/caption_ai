@@ -5,8 +5,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { auth, db } from '../firebase';
 
 export default function Signup() {
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -20,7 +19,7 @@ export default function Signup() {
     setError('');
     setLoading(true);
 
-    if (!firstName || !lastName || !email || !password || !confirmPassword) {
+    if (!name || !email || !password || !confirmPassword) {
       setError('Please fill out all fields.');
       setLoading(false);
       return;
@@ -37,8 +36,7 @@ export default function Signup() {
       const uid = userCredential.user.uid;
 
       await setDoc(doc(db, 'users', uid), {
-        firstName,
-        lastName,
+        name,
         email,
         uploadCount: 0,
         createdAt: new Date().toISOString()
@@ -71,8 +69,8 @@ export default function Signup() {
           <input
             className="w-full px-4 py-2 rounded-md bg-[#0d1117] border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500"
             placeholder="Name"
-            value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
           />
           <input
             className="w-full px-4 py-2 rounded-md bg-[#0d1117] border border-gray-600 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500"
