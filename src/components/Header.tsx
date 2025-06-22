@@ -36,7 +36,6 @@ const Header = () => {
     checkAccess();
   }, [user]);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -57,6 +56,7 @@ const Header = () => {
       <div className="container mx-auto px-6 py-4 flex items-center justify-between">
         <h1 className="text-2xl font-bold">Texotica Caption AI</h1>
 
+        {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-6">
           <Link to="/" className="hover:text-purple-300">Home</Link>
           {isAccessRestricted ? (
@@ -96,6 +96,7 @@ const Header = () => {
           )}
         </nav>
 
+        {/* Mobile Hamburger */}
         <button className="md:hidden" onClick={() => setMenuOpen(!menuOpen)}>
           <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round"
@@ -104,6 +105,7 @@ const Header = () => {
         </button>
       </div>
 
+      {/* Mobile Menu */}
       {menuOpen && (
         <div className="md:hidden px-6 pb-4 space-y-2">
           <Link to="/" className="block hover:text-purple-300">Home</Link>
@@ -114,10 +116,18 @@ const Header = () => {
           )}
           <Link to="/subscribe" className="block hover:text-purple-300">Subscribe</Link>
           <Link to="/how-it-works" className="block hover:text-purple-300">How To Use</Link>
+
           {user ? (
-            <button onClick={handleLogout} className="block text-red-400 px-4 py-1 border border-red-500 rounded hover:bg-red-600">
-              Logout
-            </button>
+            <>
+              <Link to="/profile" className="block text-purple-300">👤 Profile</Link>
+              <Link to="/change-password" className="block text-purple-300">🔒 Change Password</Link>
+              <button
+                onClick={handleLogout}
+                className="block text-red-400 px-4 py-1 border border-red-500 rounded hover:bg-red-600"
+              >
+                🚪 Logout
+              </button>
+            </>
           ) : (
             <>
               <Link to="/login" className="block text-purple-400">Login</Link>
