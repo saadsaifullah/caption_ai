@@ -5,10 +5,20 @@ import CaptionControls from '../../components/CaptionControls';
 import ImagePreview from '../../components/ImagePreview';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { describeImage, generateCaption } from '../../services/geminiService';
-import { CaptionLength, CaptionStyle, CaptionAppearanceStyle, EmojiCount } from '../../types';
 import {
-  APP_TITLE, DEFAULT_CAPTION_LENGTH, DEFAULT_CAPTION_STYLE, DEFAULT_TEXT_POSITION,
-  DEFAULT_TEXT_OPACITY, DEFAULT_CUSTOM_FONT_SIZE, DEFAULT_CAPTION_APPEARANCE_STYLE,
+  CaptionLength,
+  CaptionStyle,
+  CaptionAppearanceStyle,
+  EmojiCount
+} from '../../types';
+import {
+  APP_TITLE,
+  DEFAULT_CAPTION_LENGTH,
+  DEFAULT_CAPTION_STYLE,
+  DEFAULT_TEXT_POSITION,
+  DEFAULT_TEXT_OPACITY,
+  DEFAULT_CUSTOM_FONT_SIZE,
+  DEFAULT_CAPTION_APPEARANCE_STYLE,
   DEFAULT_EMOJI_COUNT
 } from '../../constants';
 import { MessageSquare } from 'lucide-react';
@@ -19,6 +29,13 @@ import { db } from '../firebase';
 const CaptionTool: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  // ✅ Redirect to login if user is not logged in
+  useEffect(() => {
+    if (!user) {
+      navigate('/login');
+    }
+  }, [user, navigate]);
 
   const [uploadedImageFile, setUploadedImageFile] = useState<File | null>(null);
   const [imageBase64, setImageBase64] = useState<string | null>(null);
@@ -70,6 +87,7 @@ const CaptionTool: React.FC = () => {
   const handleImageUpload = useCallback(async (file: File, base64: string) => {
     if (!user) {
       setError('Please log in to upload images.');
+      navigate('/login');
       return;
     }
 
@@ -84,7 +102,7 @@ const CaptionTool: React.FC = () => {
     const tokens = userData.tokens || 0;
     const uploadCount = userData.uploadCount || 0;
 
-    const todayKey = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    const todayKey = new Date().toISOString().split('T')[0];
     const usageKey = `used_${todayKey}`;
     const usedToday = userData[usageKey] || 0;
     const dailyLimit = plan === 'yearly' ? 100 : 50;
