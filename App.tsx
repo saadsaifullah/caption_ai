@@ -1,9 +1,9 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
-import Header from "./src/components/Header";
-import Hero from "./src/components/Hero";
-import CTA from "./src/components/CTA";
-import Footer from "./src/components/Footer";
+import Header from './src/components/Header';
+import Hero from './src/components/Hero';
+import CTA from './src/components/CTA';
+import Footer from './src/components/Footer';
 import HowItWorks from './src/components/HowItWorks';
 import Subscribe from './src/components/Subscribe';
 import CaptionTool from './src/components/CaptionTool';
@@ -20,25 +20,28 @@ function App() {
       <Router>
         <div className="min-h-screen flex flex-col bg-[#0d1117] text-white">
           <Header />
+
           <main className="flex-grow pt-24">
             <Routes>
               {/* Home Page */}
-              <Route path="/" element={
-                <>
-                  <Hero />
-                  <CTA />
-                </>
-              } />
+              <Route
+                path="/"
+                element={
+                  <>
+                    <Hero />
+                    <CTA />
+                  </>
+                }
+              />
 
-              {/* Public Pages */}
+              {/* Public Routes */}
               <Route path="/how-it-works" element={<HowItWorks />} />
               <Route path="/subscribe" element={<Subscribe />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/login" element={<Login />} />
               <Route path="/success" element={<Success />} />
-              <Route path="/profile" element={<Profile />} />
 
-              {/* Protected Route for Caption Tool */}
+              {/* Protected Routes */}
               <Route
                 path="/caption-tool"
                 element={
@@ -47,8 +50,18 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+
+              <Route
+                path="/profile"
+                element={
+                  <ProtectedRoute>
+                    <Profile />
+                  </ProtectedRoute>
+                }
+              />
             </Routes>
           </main>
+
           <Footer />
         </div>
       </Router>
