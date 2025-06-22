@@ -55,10 +55,9 @@ const Hero = () => {
 
   return (
     <>
-
-      {/* Hero / Main CTA Section */}
+      {/* Hero Section */}
       <section className="text-center py-24 md:py-36 bg-gradient-to-b from-[#0d1117] to-[#161b22] text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-radial from-pink-600/10 via-purple-500/5 to-transparent rounded-full w-[60vw] h-[60vw] mx-auto blur-3xl animate-pulse z-0" />
+        <div className="absolute inset-0 bg-gradient-radial from-pink-600/10 via-purple-500/5 to-transparent w-[60vw] h-[60vw] mx-auto blur-3xl animate-pulse z-0 rounded-full" />
         <div className="relative container mx-auto px-6 z-10">
           <div className="max-w-3xl mx-auto">
             <img
@@ -90,7 +89,8 @@ const Hero = () => {
           </div>
         </div>
       </section>
-       {/* Process Steps Section */}
+
+      {/* Process Steps Section */}
       <section className="py-20 bg-[#0d1117] text-white">
         <div className="max-w-7xl mx-auto px-6 text-center">
           <h2 className="text-4xl md:text-5xl font-bold mb-4">A Simple, Powerful Process</h2>
