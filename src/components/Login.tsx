@@ -1,40 +1,48 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../firebase';
 import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 export default function Login() {
+  const { user } = useAuth(); // ✅ Access logged-in user from context
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-const login = async () => {
-  if (loading) return;
-  setLoading(true);
-  setError('');
-
-  try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
-
-    if (!user.emailVerified) {
-      await auth.signOut();
-      setError('Please verify your email before logging in.');
-      setLoading(false);
-      return;
+  // ✅ If user is already logged in, redirect to homepage
+  useEffect(() => {
+    if (user) {
+      navigate('/');
     }
+  }, [user, navigate]);
 
-    navigate('/');
-  } catch (err: any) {
-    console.error('Login error:', err);
-    setError(err.message || 'Login failed.');
-  } finally {
-    setLoading(false);
-  }
-};
+  const login = async () => {
+    if (loading) return;
+    setLoading(true);
+    setError('');
 
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      if (!user.emailVerified) {
+        await auth.signOut();
+        setError('Please verify your email before logging in.');
+        setLoading(false);
+        return;
+      }
+
+      navigate('/');
+    } catch (err: any) {
+      console.error('Login error:', err);
+      setError(err.message || 'Login failed.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#0d1117] px-4">
