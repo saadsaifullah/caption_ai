@@ -37,7 +37,7 @@ const Profile: React.FC = () => {
     const ref = doc(db, 'users', user.uid);
     await updateDoc(ref, {
       plan: null,
-      planExpires: null,
+      planExpires: null
     });
     setUserData({ ...userData, plan: null, planExpires: null });
     setShowConfirm(false);
@@ -61,15 +61,15 @@ const Profile: React.FC = () => {
     return <div className="text-white p-8">Loading profile...</div>;
   }
 
-  // Calculate today's used generations and remaining
-  const today = new Date().toISOString().split('T')[0]; // '2025-07-11'
-  const usedToday = userData?.[`used_${today}`] || 0;
   const plan = userData?.plan;
   const planExpires = userData?.planExpires ? new Date(userData.planExpires) : null;
-  const planActive = plan && planExpires && Date.now() < planExpires.getTime();
+  const planActive = plan && planExpires && planExpires > new Date();
+
+  const todayKey = new Date().toISOString().split('T')[0]; // e.g. 2025-07-11
+  const dailyUsed = userData?.[`used_${todayKey}`] || 0;
 
   const dailyLimit = plan === 'yearly' ? 100 : plan === 'monthly' ? 50 : 0;
-  const generationsLeft = planActive ? dailyLimit - usedToday : 0;
+  const generationsLeft = planActive ? dailyLimit - dailyUsed : 0;
 
   return (
     <div className="text-white p-8 bg-[#0d1117] min-h-screen">
