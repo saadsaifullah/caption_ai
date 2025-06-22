@@ -1,5 +1,3 @@
-// src/pages/CaptionTool.tsx
-
 import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ImageUploader from '../../components/ImageUploader';
@@ -81,21 +79,17 @@ const CaptionTool: React.FC = () => {
 
     const plan = userData.plan;
     const planExpires = userData.planExpires ? new Date(userData.planExpires) : null;
-    const isPlanActive = plan && planExpires && Date.now() < planExpires.getTime();
+    const isPlanActive = plan && planExpires && planExpires > new Date();
+
     const tokens = userData.tokens || 0;
     const uploadCount = userData.uploadCount || 0;
 
-    const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-    const lastGenDate = userData.lastGenDate || '';
-    let dailyGenCount = userData.dailyGenCount || 0;
-
-    if (lastGenDate !== today) {
-      dailyGenCount = 0; // reset daily limit on new day
-    }
-
+    const todayKey = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    const usageKey = `used_${todayKey}`;
+    const usedToday = userData[usageKey] || 0;
     const dailyLimit = plan === 'yearly' ? 100 : 50;
 
-    if (isPlanActive && dailyGenCount >= dailyLimit) {
+    if (isPlanActive && usedToday >= dailyLimit) {
       navigate('/subscribe?limit=You%20have%20reached%20your%20daily%20generation%20limit.');
       return;
     }
@@ -105,16 +99,16 @@ const CaptionTool: React.FC = () => {
       return;
     }
 
-    // 👇 Firestore update object
     const newData: any = {
       uploadCount: uploadCount + 1,
     };
 
-    if (tokens >= 10) newData.tokens = tokens - 10;
+    if (!isPlanActive && tokens >= 10) {
+      newData.tokens = tokens - 10;
+    }
 
     if (isPlanActive) {
-      newData.dailyGenCount = dailyGenCount + 1;
-      newData.lastGenDate = today;
+      newData[usageKey] = usedToday + 1;
     }
 
     await updateDoc(userRef, newData);
