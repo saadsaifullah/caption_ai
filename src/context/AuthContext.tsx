@@ -8,18 +8,20 @@ interface AuthContextType {
   authLoading: boolean;
 }
 
-const AuthContext = createContext<AuthContextType>({ user: null, authLoading: true });
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  authLoading: true
+});
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);              // ✅ Now properly typed
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      setUser(firebaseUser);
       setAuthLoading(false);
     });
-
     return () => unsubscribe();
   }, []);
 

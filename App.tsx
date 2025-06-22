@@ -1,9 +1,9 @@
+// App.tsx
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-
-import Header from './src/components/Header';
-import Hero from './src/components/Hero';
-import CTA from './src/components/CTA';
-import Footer from './src/components/Footer';
+import Header from "./src/components/Header";
+import Hero from "./src/components/Hero";
+import CTA from "./src/components/CTA";
+import Footer from "./src/components/Footer";
 import HowItWorks from './src/components/HowItWorks';
 import Subscribe from './src/components/Subscribe';
 import CaptionTool from './src/components/CaptionTool';
@@ -12,7 +12,47 @@ import Login from './src/components/Login';
 import Success from './src/Success';
 import Profile from './src/components/Profile';
 import ProtectedRoute from './src/components/ProtectedRoute';
-import { AuthProvider } from './src/context/AuthContext';
+import { AuthProvider, useAuth } from './src/context/AuthContext';
+
+const AppRoutes = () => {
+  const { authLoading } = useAuth();
+
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen text-white">
+        <p className="text-lg">Checking authentication...</p>
+      </div>
+    );
+  }
+
+  return (
+    <Routes>
+      <Route
+        path="/"
+        element={
+          <>
+            <Hero />
+            <CTA />
+          </>
+        }
+      />
+      <Route path="/how-it-works" element={<HowItWorks />} />
+      <Route path="/subscribe" element={<Subscribe />} />
+      <Route path="/signup" element={<Signup />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/success" element={<Success />} />
+      <Route path="/profile" element={<Profile />} />
+      <Route
+        path="/caption-tool"
+        element={
+          <ProtectedRoute>
+            <CaptionTool />
+          </ProtectedRoute>
+        }
+      />
+    </Routes>
+  );
+};
 
 function App() {
   return (
@@ -20,48 +60,9 @@ function App() {
       <Router>
         <div className="min-h-screen flex flex-col bg-[#0d1117] text-white">
           <Header />
-
           <main className="flex-grow pt-24">
-            <Routes>
-              {/* Home Page */}
-              <Route
-                path="/"
-                element={
-                  <>
-                    <Hero />
-                    <CTA />
-                  </>
-                }
-              />
-
-              {/* Public Routes */}
-              <Route path="/how-it-works" element={<HowItWorks />} />
-              <Route path="/subscribe" element={<Subscribe />} />
-              <Route path="/signup" element={<Signup />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/success" element={<Success />} />
-
-              {/* Protected Routes */}
-              <Route
-                path="/caption-tool"
-                element={
-                  <ProtectedRoute>
-                    <CaptionTool />
-                  </ProtectedRoute>
-                }
-              />
-
-              <Route
-                path="/profile"
-                element={
-                  <ProtectedRoute>
-                    <Profile />
-                  </ProtectedRoute>
-                }
-              />
-            </Routes>
+            <AppRoutes />
           </main>
-
           <Footer />
         </div>
       </Router>
