@@ -10,21 +10,31 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const login = async () => {
-    if (loading) return;
-    setLoading(true);
-    setError('');
+const login = async () => {
+  if (loading) return;
+  setLoading(true);
+  setError('');
 
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      navigate('/');
-    } catch (err: any) {
-      console.error('Login error:', err);
-      setError(err.message || 'Login failed.');
-    } finally {
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+
+    if (!user.emailVerified) {
+      await auth.signOut();
+      setError('Please verify your email before logging in.');
       setLoading(false);
+      return;
     }
-  };
+
+    navigate('/');
+  } catch (err: any) {
+    console.error('Login error:', err);
+    setError(err.message || 'Login failed.');
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#0d1117] px-4">

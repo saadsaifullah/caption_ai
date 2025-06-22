@@ -14,42 +14,47 @@ export default function Signup() {
   const navigate = useNavigate();
 
   const handleSignup = async () => {
-    if (loading) return;
+  if (loading) return;
 
-    setError('');
-    setLoading(true);
+  setError('');
+  setLoading(true);
 
-    if (!name || !email || !password || !confirmPassword) {
-      setError('Please fill out all fields.');
-      setLoading(false);
-      return;
-    }
+  if (!name || !email || !password || !confirmPassword) {
+    setError('Please fill out all fields.');
+    setLoading(false);
+    return;
+  }
 
-    if (password !== confirmPassword) {
-      setError('Passwords do not match.');
-      setLoading(false);
-      return;
-    }
+  if (password !== confirmPassword) {
+    setError('Passwords do not match.');
+    setLoading(false);
+    return;
+  }
 
-    try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const uid = userCredential.user.uid;
+  try {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
 
-      await setDoc(doc(db, 'users', uid), {
-        name,
-        email,
-        uploadCount: 0,
-        createdAt: new Date().toISOString()
-      });
+    await user.sendEmailVerification();
 
-      navigate('/');
-    } catch (err: any) {
-      console.error('Signup error:', err);
-      setError(err.message || 'Failed to sign up.');
-    } finally {
-      setLoading(false);
-    }
-  };
+    const uid = user.uid;
+    await setDoc(doc(db, 'users', uid), {
+      name,
+      email,
+      uploadCount: 0,
+      createdAt: new Date().toISOString()
+    });
+
+    alert('Verification email sent! Please verify your email before logging in.');
+    navigate('/login');
+  } catch (err: any) {
+    console.error('Signup error:', err);
+    setError(err.message || 'Failed to sign up.');
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#0d1117] px-4">
