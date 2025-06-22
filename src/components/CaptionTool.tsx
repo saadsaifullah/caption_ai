@@ -147,11 +147,6 @@ const CaptionTool: React.FC = () => {
     }
   }, [user, apiKeyMissingError, navigate]);
 
-  const handleGenerateCaption = useCallback(async () => {
-    if (apiKeyMissingError) {
-      setError(apiKeyMissingError);
-      return;
-    }
 
     const hasValidInput =
       (imageDescription && imageDescription.trim() !== '') ||
