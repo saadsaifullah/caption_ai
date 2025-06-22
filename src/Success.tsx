@@ -11,58 +11,64 @@ const Success: React.FC = () => {
   const searchParams = new URLSearchParams(location.search);
   const tokenParam = searchParams.get('tokens');
 
-  const [message, setMessage] = useState('Completing your purchase...');
+  const [message, setMessage] = useState('🎉 Completing your purchase...');
 
   useEffect(() => {
-    const grantTokens = async () => {
-      console.log('✅ Success page loaded');
+    const handleSuccess = async () => {
       if (!user) {
-        console.warn('⚠️ User not logged in');
-        setMessage('❌ You must be logged in to receive tokens.');
+        setMessage('❌ You must be logged in to apply your purchase.');
         return;
       }
 
-      if (!tokenParam) {
-        console.warn('⚠️ No token parameter found in URL');
-        setMessage('❌ Missing token information.');
-        return;
-      }
+      const userRef = doc(db, 'users', user.uid);
+      const userSnap = await getDoc(userRef);
 
-      const tokens = parseInt(tokenParam);
-      if (isNaN(tokens) || tokens <= 0) {
-        console.warn('⚠️ Invalid token value:', tokenParam);
-        setMessage('❌ Invalid token amount.');
-        return;
-      }
-
-      try {
-        const uid = user.uid;
-        const userRef = doc(db, 'users', uid);
-        const userSnap = await getDoc(userRef);
+      // If it's a token pack
+      if (tokenParam) {
+        const tokens = parseInt(tokenParam);
+        if (isNaN(tokens) || tokens <= 0) {
+          setMessage('❌ Invalid token amount.');
+          return;
+        }
 
         if (!userSnap.exists()) {
           await setDoc(userRef, { tokens });
           console.log('🆕 Created new user doc with tokens:', tokens);
         } else {
-          const currentTokens = userSnap.data().tokens || 0;
-          await updateDoc(userRef, { tokens: currentTokens + tokens });
-          console.log('✅ Updated tokens from', currentTokens, 'to', currentTokens + tokens);
+          const prevTokens = userSnap.data().tokens || 0;
+          await updateDoc(userRef, { tokens: prevTokens + tokens });
+          console.log(`✅ Added ${tokens} tokens. Total: ${prevTokens + tokens}`);
         }
 
         setMessage(`✅ You’ve received ${tokens} tokens.`);
-        setTimeout(() => navigate('/'), 4000);
-      } catch (error) {
-        console.error('❌ Firestore update error:', error);
-        setMessage('❌ Payment was successful, but token update failed.');
+      } else {
+        // Plan-based purchase (monthly/yearly)
+        if (!userSnap.exists()) {
+          setMessage('❌ User data not found. Please contact support.');
+          return;
+        }
+
+        const userData = userSnap.data();
+        const plan = userData.plan;
+        const planExpires = userData.planExpires;
+
+        if (plan && planExpires) {
+          setMessage(`✅ Your ${plan} plan is now active until ${new Date(planExpires).toLocaleDateString()}.`);
+        } else {
+          setMessage('✅ Subscription activated. Thank you!');
+        }
       }
+
+      // Redirect after 4 seconds
+      setTimeout(() => navigate('/caption-tool'), 4000);
     };
 
-    grantTokens();
+    handleSuccess();
   }, [user, tokenParam, navigate]);
 
   return (
     <div className="flex items-center justify-center h-screen bg-gray-900 text-white">
-      <div className="text-center">
+      <div className="text-center max-w-lg px-4">
         <h1 className="text-3xl font-bold mb-4">🎉 Payment Success</h1>
         <p className="text-lg">{message}</p>
         <p className="text-sm mt-2 text-gray-400">Redirecting you shortly...</p>
