@@ -1,5 +1,8 @@
 import { useState } from 'react';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import {
+  createUserWithEmailAndPassword,
+  sendEmailVerification
+} from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { useNavigate, Link } from 'react-router-dom';
 import { auth, db } from '../firebase';
@@ -14,54 +17,51 @@ export default function Signup() {
   const navigate = useNavigate();
 
   const handleSignup = async () => {
-  if (loading) return;
+    if (loading) return;
 
-  setError('');
-  setLoading(true);
+    setError('');
+    setLoading(true);
 
-  if (!name || !email || !password || !confirmPassword) {
-    setError('Please fill out all fields.');
-    setLoading(false);
-    return;
-  }
+    if (!name || !email || !password || !confirmPassword) {
+      setError('Please fill out all fields.');
+      setLoading(false);
+      return;
+    }
 
-  if (password !== confirmPassword) {
-    setError('Passwords do not match.');
-    setLoading(false);
-    return;
-  }
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.');
+      setLoading(false);
+      return;
+    }
 
-  try {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
 
-    await user.sendEmailVerification();
+      // ✅ Correct way to send verification email
+      await sendEmailVerification(user);
 
-    const uid = user.uid;
-    await setDoc(doc(db, 'users', uid), {
-      name,
-      email,
-      uploadCount: 0,
-      createdAt: new Date().toISOString()
-    });
+      await setDoc(doc(db, 'users', user.uid), {
+        name,
+        email,
+        uploadCount: 0,
+        createdAt: new Date().toISOString()
+      });
 
-    alert('Verification email sent! Please verify your email before logging in.');
-    navigate('/login');
-  } catch (err: any) {
-    console.error('Signup error:', err);
-    setError(err.message || 'Failed to sign up.');
-  } finally {
-    setLoading(false);
-  }
-};
-
+      alert('✅ Verification email sent! Please verify your email before logging in.');
+      navigate('/login');
+    } catch (err: any) {
+      console.error('Signup error:', err);
+      setError(err.message || 'Failed to sign up.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#0d1117] px-4">
       <div className="w-full max-w-md bg-[#161b22] p-8 rounded-lg shadow-lg text-white">
-        <h2 className="text-3xl font-bold text-center text-pink-500 mb-6">
-          Create an Account
-        </h2>
+        <h2 className="text-3xl font-bold text-center text-pink-500 mb-6">Create an Account</h2>
         <div className="h-1 w-12 bg-pink-500 mx-auto mb-6 rounded-full" />
 
         {error && (
@@ -110,9 +110,7 @@ export default function Signup() {
 
         <p className="text-center text-sm text-gray-400 mt-6">
           Already have an account?{' '}
-          <Link to="/login" className="text-pink-500 hover:underline">
-            Log in
-          </Link>
+          <Link to="/login" className="text-pink-500 hover:underline">Log in</Link>
         </p>
       </div>
     </div>
