@@ -53,7 +53,7 @@ export default function Signup() {
       // ✅ Sign out immediately after sending verification
       await signOut(auth);
 
-      alert('✅ Verification email sent! Please verify your email before logging in.');
+      alert('✅ Verification email sent! Please verify your email before logging in if not found in inbox check your spam folder as well.');
       navigate('/login');
     } catch (err: any) {
       console.error('Signup error:', err);
