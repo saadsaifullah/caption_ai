@@ -16,29 +16,12 @@ const Profile: React.FC = () => {
       if (!user) return;
       const ref = doc(db, 'users', user.uid);
       const snap = await getDoc(ref);
-      const today = new Date().toDateString();
 
       if (snap.exists()) {
         const data = snap.data();
-        let updatedData = { ...data };
-
-        if (data.plan && data.planExpires && new Date(data.planExpires) > new Date()) {
-          const currentDay = data.generationDate || '';
-
-          if (currentDay !== today) {
-            const dailyLimit = data.plan === 'yearly' ? 100 : 50;
-            updatedData.generationsLeft = dailyLimit;
-            updatedData.generationDate = today;
-
-            await updateDoc(ref, {
-              generationsLeft: dailyLimit,
-              generationDate: today,
-            });
-          }
-        }
-
-        setUserData(updatedData);
+        setUserData(data);
       }
+
       setLoading(false);
     };
     fetchUserData();
@@ -55,10 +38,8 @@ const Profile: React.FC = () => {
     await updateDoc(ref, {
       plan: null,
       planExpires: null,
-      generationsLeft: null,
-      generationDate: null,
     });
-    setUserData({ ...userData, plan: null, planExpires: null, generationsLeft: null, generationDate: null });
+    setUserData({ ...userData, plan: null, planExpires: null });
     setShowConfirm(false);
   };
 
@@ -80,22 +61,36 @@ const Profile: React.FC = () => {
     return <div className="text-white p-8">Loading profile...</div>;
   }
 
+  // Calculate today's used generations and remaining
+  const today = new Date().toISOString().split('T')[0]; // '2025-07-11'
+  const usedToday = userData?.[`used_${today}`] || 0;
+  const plan = userData?.plan;
+  const planExpires = userData?.planExpires ? new Date(userData.planExpires) : null;
+  const planActive = plan && planExpires && Date.now() < planExpires.getTime();
+
+  const dailyLimit = plan === 'yearly' ? 100 : plan === 'monthly' ? 50 : 0;
+  const generationsLeft = planActive ? dailyLimit - usedToday : 0;
+
   return (
     <div className="text-white p-8 bg-[#0d1117] min-h-screen">
       <div className="max-w-3xl mx-auto bg-[#161b22] p-8 rounded-xl shadow-lg">
         <h1 className="text-3xl font-bold mb-4">Your Account</h1>
-        <p className="text-lg mb-2">Welcome, <span className="text-purple-400 font-semibold">{userData?.firstName || 'User'}</span>!</p>
+        <p className="text-lg mb-2">
+          Welcome, <span className="text-purple-400 font-semibold">{userData?.firstName || 'User'}</span>!
+        </p>
         <p className="text-sm text-gray-400 mb-6">Email: {user.email}</p>
 
         <div className="mb-6">
-          <p><strong>Generations Left Today:</strong> {userData?.generationsLeft ?? 'N/A'}</p>
+          <p><strong>Generations Left Today:</strong> {generationsLeft}</p>
           <p><strong>Tokens Left:</strong> {userData?.tokens || 0}</p>
-          <p><strong>Subscription Plan:</strong> {userData?.plan || 'None'}</p>
-          {userData?.planExpires && <p><strong>Expires:</strong> {new Date(userData.planExpires).toLocaleDateString()}</p>}
+          <p><strong>Subscription Plan:</strong> {planActive ? plan : 'None'}</p>
+          {planActive && (
+            <p><strong>Expires:</strong> {new Date(userData.planExpires).toLocaleDateString()}</p>
+          )}
         </div>
 
         <div className="flex space-x-4">
-          {userData?.plan ? (
+          {planActive ? (
             showConfirm ? (
               <div className="space-x-4">
                 <button
