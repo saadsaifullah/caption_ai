@@ -1,3 +1,5 @@
+// src/pages/CaptionTool.tsx
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ImageUploader from '../../components/ImageUploader';
@@ -13,7 +15,7 @@ import {
 } from '../../constants';
 import { MessageSquare } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 
 const CaptionTool: React.FC = () => {
@@ -83,20 +85,18 @@ const CaptionTool: React.FC = () => {
     const tokens = userData.tokens || 0;
     const uploadCount = userData.uploadCount || 0;
 
-    // Plan-based generation tracking
-    const today = new Date().toISOString().slice(0, 10); // 'YYYY-MM-DD'
-    const lastGenDate = userData.lastGenDate || null;
+    const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    const lastGenDate = userData.lastGenDate || '';
     let dailyGenCount = userData.dailyGenCount || 0;
 
-    // Reset daily generation count if date has changed
     if (lastGenDate !== today) {
-      dailyGenCount = 0;
+      dailyGenCount = 0; // reset daily limit on new day
     }
 
     const dailyLimit = plan === 'yearly' ? 100 : 50;
 
     if (isPlanActive && dailyGenCount >= dailyLimit) {
-      setError(`You have reached your daily generation limit of ${dailyLimit}.`);
+      navigate('/subscribe?limit=You%20have%20reached%20your%20daily%20generation%20limit.');
       return;
     }
 
@@ -105,14 +105,12 @@ const CaptionTool: React.FC = () => {
       return;
     }
 
-    // Subtract token if applicable
+    // 👇 Firestore update object
     const newData: any = {
       uploadCount: uploadCount + 1,
     };
 
-    if (tokens >= 10) {
-      newData.tokens = tokens - 10;
-    }
+    if (tokens >= 10) newData.tokens = tokens - 10;
 
     if (isPlanActive) {
       newData.dailyGenCount = dailyGenCount + 1;
@@ -127,19 +125,15 @@ const CaptionTool: React.FC = () => {
 
     if (apiKeyMissingError) {
       setError(apiKeyMissingError);
-      setShowSpicyImageMessage(false);
       return;
     }
 
     setIsLoadingImageDescription(true);
-    setError(null);
-
     try {
       const description = await describeImage(base64, file.type);
       setImageDescription(description);
       setShowSpicyImageMessage(false);
     } catch (e: any) {
-      console.warn("Image description failed:", e.message);
       setImageDescription(null);
       setShowSpicyImageMessage(true);
     } finally {
@@ -147,6 +141,11 @@ const CaptionTool: React.FC = () => {
     }
   }, [user, apiKeyMissingError, navigate]);
 
+  const handleGenerateCaption = useCallback(async () => {
+    if (apiKeyMissingError) {
+      setError(apiKeyMissingError);
+      return;
+    }
 
     const hasValidInput =
       (imageDescription && imageDescription.trim() !== '') ||
@@ -160,7 +159,6 @@ const CaptionTool: React.FC = () => {
     setIsLoadingCaption(true);
     setError(null);
     setGeneratedCaption(null);
-
     try {
       const caption = await generateCaption(
         imageDescription,
@@ -172,7 +170,6 @@ const CaptionTool: React.FC = () => {
       );
       setGeneratedCaption(caption);
     } catch (e: any) {
-      console.error("Caption generation error:", e);
       setError(e.message || "Failed to generate caption.");
     } finally {
       setIsLoadingCaption(false);
