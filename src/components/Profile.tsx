@@ -16,8 +16,28 @@ const Profile: React.FC = () => {
       if (!user) return;
       const ref = doc(db, 'users', user.uid);
       const snap = await getDoc(ref);
+      const today = new Date().toDateString();
+
       if (snap.exists()) {
-        setUserData(snap.data());
+        const data = snap.data();
+        let updatedData = { ...data };
+
+        if (data.plan && data.planExpires && new Date(data.planExpires) > new Date()) {
+          const currentDay = data.generationDate || '';
+
+          if (currentDay !== today) {
+            const dailyLimit = data.plan === 'yearly' ? 100 : 50;
+            updatedData.generationsLeft = dailyLimit;
+            updatedData.generationDate = today;
+
+            await updateDoc(ref, {
+              generationsLeft: dailyLimit,
+              generationDate: today,
+            });
+          }
+        }
+
+        setUserData(updatedData);
       }
       setLoading(false);
     };
@@ -34,9 +54,11 @@ const Profile: React.FC = () => {
     const ref = doc(db, 'users', user.uid);
     await updateDoc(ref, {
       plan: null,
-      planExpires: null
+      planExpires: null,
+      generationsLeft: null,
+      generationDate: null,
     });
-    setUserData({ ...userData, plan: null, planExpires: null });
+    setUserData({ ...userData, plan: null, planExpires: null, generationsLeft: null, generationDate: null });
     setShowConfirm(false);
   };
 
@@ -66,7 +88,7 @@ const Profile: React.FC = () => {
         <p className="text-sm text-gray-400 mb-6">Email: {user.email}</p>
 
         <div className="mb-6">
-          <p><strong>Generations Left Today:</strong> {userData?.generationsLeft || 'Unlimited'}</p>
+          <p><strong>Generations Left Today:</strong> {userData?.generationsLeft ?? 'N/A'}</p>
           <p><strong>Tokens Left:</strong> {userData?.tokens || 0}</p>
           <p><strong>Subscription Plan:</strong> {userData?.plan || 'None'}</p>
           {userData?.planExpires && <p><strong>Expires:</strong> {new Date(userData.planExpires).toLocaleDateString()}</p>}
