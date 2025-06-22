@@ -14,16 +14,30 @@ const Profile: React.FC = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       if (!user) return;
+
       const ref = doc(db, 'users', user.uid);
       const snap = await getDoc(ref);
+      if (!snap.exists()) return;
 
-      if (snap.exists()) {
-        const data = snap.data();
-        setUserData(data);
-      }
+      const data = snap.data();
+      const plan = data.plan;
+      const todayKey = new Date().toISOString().split('T')[0]; // e.g. "2025-07-12"
+      const usageKey = `used_${todayKey}`;
+      const usedToday = data[usageKey] || 0;
 
+      const dailyLimit = plan === 'yearly' ? 100 : plan === 'monthly' ? 50 : 0;
+      const generationsLeft = dailyLimit - usedToday;
+
+      const updatedUserData = {
+        ...data,
+        [`used_${todayKey}`]: usedToday,
+        generationsLeft,
+      };
+
+      setUserData(updatedUserData);
       setLoading(false);
     };
+
     fetchUserData();
   }, [user]);
 
@@ -37,9 +51,8 @@ const Profile: React.FC = () => {
     const ref = doc(db, 'users', user.uid);
     await updateDoc(ref, {
       plan: null,
-      planExpires: null
     });
-    setUserData({ ...userData, plan: null, planExpires: null });
+    setUserData({ ...userData, plan: null });
     setShowConfirm(false);
   };
 
@@ -62,14 +75,10 @@ const Profile: React.FC = () => {
   }
 
   const plan = userData?.plan;
-  const planExpires = userData?.planExpires ? new Date(userData.planExpires) : null;
-  const planActive = plan && planExpires && planExpires > new Date();
-
-  const todayKey = new Date().toISOString().split('T')[0]; // e.g. 2025-07-11
-  const dailyUsed = userData?.[`used_${todayKey}`] || 0;
-
+  const todayKey = new Date().toISOString().split('T')[0];
+  const usedToday = userData?.[`used_${todayKey}`] || 0;
   const dailyLimit = plan === 'yearly' ? 100 : plan === 'monthly' ? 50 : 0;
-  const generationsLeft = planActive ? dailyLimit - dailyUsed : 0;
+  const generationsLeft = plan ? dailyLimit - usedToday : 0;
 
   return (
     <div className="text-white p-8 bg-[#0d1117] min-h-screen">
@@ -83,14 +92,11 @@ const Profile: React.FC = () => {
         <div className="mb-6">
           <p><strong>Generations Left Today:</strong> {generationsLeft}</p>
           <p><strong>Tokens Left:</strong> {userData?.tokens || 0}</p>
-          <p><strong>Subscription Plan:</strong> {planActive ? plan : 'None'}</p>
-          {planActive && (
-            <p><strong>Expires:</strong> {new Date(userData.planExpires).toLocaleDateString()}</p>
-          )}
+          <p><strong>Subscription Plan:</strong> {plan || 'None'}</p>
         </div>
 
         <div className="flex space-x-4">
-          {planActive ? (
+          {plan ? (
             showConfirm ? (
               <div className="space-x-4">
                 <button
