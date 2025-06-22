@@ -1,17 +1,22 @@
 // src/context/AuthContext.tsx
-import { createContext, useContext, useEffect, useState } from 'react';
-import { onAuthStateChanged } from 'firebase/auth';
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from '../firebase';
 
-const AuthContext = createContext<any>(null);
+interface AuthContextType {
+  user: User | null;
+  authLoading: boolean;
+}
 
-export const AuthProvider = ({ children }: any) => {
-  const [user, setUser] = useState(null);
+const AuthContext = createContext<AuthContextType>({ user: null, authLoading: true });
+
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const [user, setUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
+      setUser(user);              // ✅ Now properly typed
       setAuthLoading(false);
     });
 
