@@ -11,7 +11,7 @@ import {
   DEFAULT_TEXT_OPACITY, DEFAULT_CUSTOM_FONT_SIZE, DEFAULT_CAPTION_APPEARANCE_STYLE,
   DEFAULT_EMOJI_COUNT
 } from '../../constants';
-import { AlertTriangle, CheckCircle2, Info, MessageSquare } from 'lucide-react';
+import { MessageSquare } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -47,26 +47,6 @@ const CaptionTool: React.FC = () => {
     }
   }, []);
 
-  useEffect(() => {
-    const checkEligibility = async () => {
-      if (!user) return;
-      const userRef = doc(db, 'users', user.uid);
-      const docSnap = await getDoc(userRef);
-
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        const hasPlan = !!data.plan && Date.now() < new Date(data.planExpires).getTime();
-        const tokens = data.tokens || 0;
-        const uploadCount = data.uploadCount || 0;
-
-        if (!hasPlan && tokens <= 0 && uploadCount >= 5) {
-          navigate('/subscribe?limit=You%20have%20reached%20your%20free%20upload%20limit.');
-        }
-      }
-    };
-    checkEligibility();
-  }, [user, navigate]);
-
   const clearAll = () => {
     setUploadedImageFile(null);
     setImageBase64(null);
@@ -93,52 +73,77 @@ const CaptionTool: React.FC = () => {
       return;
     }
 
+    const userRef = doc(db, 'users', user.uid);
+    const docSnap = await getDoc(userRef);
+    const userData = docSnap.exists() ? docSnap.data() : {};
+
+    const plan = userData.plan;
+    const planExpires = userData.planExpires ? new Date(userData.planExpires) : null;
+    const isPlanActive = plan && planExpires && Date.now() < planExpires.getTime();
+    const tokens = userData.tokens || 0;
+    const uploadCount = userData.uploadCount || 0;
+
+    // Plan-based generation tracking
+    const today = new Date().toISOString().slice(0, 10); // 'YYYY-MM-DD'
+    const lastGenDate = userData.lastGenDate || null;
+    let dailyGenCount = userData.dailyGenCount || 0;
+
+    // Reset daily generation count if date has changed
+    if (lastGenDate !== today) {
+      dailyGenCount = 0;
+    }
+
+    const dailyLimit = plan === 'yearly' ? 100 : 50;
+
+    if (isPlanActive && dailyGenCount >= dailyLimit) {
+      setError(`You have reached your daily generation limit of ${dailyLimit}.`);
+      return;
+    }
+
+    if (!isPlanActive && tokens < 10 && uploadCount >= 5) {
+      navigate('/subscribe?limit=You%20have%20reached%20your%20free%20upload%20limit.');
+      return;
+    }
+
+    // Subtract token if applicable
+    const newData: any = {
+      uploadCount: uploadCount + 1,
+    };
+
+    if (tokens >= 10) {
+      newData.tokens = tokens - 10;
+    }
+
+    if (isPlanActive) {
+      newData.dailyGenCount = dailyGenCount + 1;
+      newData.lastGenDate = today;
+    }
+
+    await updateDoc(userRef, newData);
+
+    clearAll();
+    setUploadedImageFile(file);
+    setImageBase64(base64);
+
+    if (apiKeyMissingError) {
+      setError(apiKeyMissingError);
+      setShowSpicyImageMessage(false);
+      return;
+    }
+
+    setIsLoadingImageDescription(true);
+    setError(null);
+
     try {
-      const userRef = doc(db, 'users', user.uid);
-      const docSnap = await getDoc(userRef);
-
-      let userData = docSnap.exists() ? docSnap.data() : {};
-
-      const hasPlan = !!userData.plan && Date.now() < new Date(userData.planExpires).getTime();
-      const tokens = userData.tokens || 0;
-      const uploadCount = userData.uploadCount || 0;
-
-      if (!hasPlan && tokens <= 0 && uploadCount >= 5) {
-        navigate('/subscribe?limit=You%20have%20reached%20your%20free%20upload%20limit.');
-        return;
-      }
-
-      await updateDoc(userRef, {
-        uploadCount: uploadCount + 1,
-        ...(tokens >= 10 ? { tokens: tokens - 10 } : {})
-      });
-
-      clearAll();
-      setUploadedImageFile(file);
-      setImageBase64(base64);
-
-      if (apiKeyMissingError) {
-        setError(apiKeyMissingError);
-        setShowSpicyImageMessage(false);
-        return;
-      }
-
-      setIsLoadingImageDescription(true);
-      setError(null);
-
-      try {
-        const description = await describeImage(base64, file.type);
-        setImageDescription(description);
-        setShowSpicyImageMessage(false);
-      } catch (e: any) {
-        console.warn("Image description failed:", e.message);
-        setImageDescription(null);
-        setShowSpicyImageMessage(true);
-      } finally {
-        setIsLoadingImageDescription(false);
-      }
+      const description = await describeImage(base64, file.type);
+      setImageDescription(description);
+      setShowSpicyImageMessage(false);
     } catch (e: any) {
-      setError("Upload failed: " + e.message);
+      console.warn("Image description failed:", e.message);
+      setImageDescription(null);
+      setShowSpicyImageMessage(true);
+    } finally {
+      setIsLoadingImageDescription(false);
     }
   }, [user, apiKeyMissingError, navigate]);
 
@@ -160,6 +165,7 @@ const CaptionTool: React.FC = () => {
     setIsLoadingCaption(true);
     setError(null);
     setGeneratedCaption(null);
+
     try {
       const caption = await generateCaption(
         imageDescription,
@@ -218,39 +224,36 @@ const CaptionTool: React.FC = () => {
             {imageDescription && !isLoadingImageDescription && !error && !showSpicyImageMessage && (
               <div className="mt-4 p-3 bg-gray-700 rounded-md">
                 <h4 className="font-semibold text-sm text-green-400">Image Analysis Complete:</h4>
-                <p className="text-xs text-gray-300 italic truncate hover:whitespace-normal focus:whitespace-normal" tabIndex={0} title={imageDescription}>{imageDescription}</p>
+                <p className="text-xs text-gray-300 italic truncate hover:whitespace-normal" title={imageDescription}>{imageDescription}</p>
               </div>
             )}
           </section>
 
-          <section>
-            <h2 className="text-2xl font-semibold mb-4 text-purple-400 border-b-2 border-gray-700 pb-2 ml-6 lg:ml-0">2. Craft Your Caption</h2>
-            <CaptionControls
-              length={captionLength}
-              onLengthChange={setCaptionLength}
-              style={captionStyle}
-              onStyleChange={setCaptionStyle}
-              emojiCount={emojiCount}
-              onEmojiCountChange={setEmojiCount}
-              inspirationText={inspirationText}
-              onInspirationTextChange={setInspirationText}
-              mustIncludeWords={mustIncludeWords}
-              onMustIncludeWordsChange={setMustIncludeWords}
-              textPosition={textPosition}
-              onTextPositionChange={setTextPosition}
-              textOpacity={textOpacity}
-              onTextOpacityChange={setTextOpacity}
-              customFontSize={customFontSize}
-              onCustomFontSizeChange={setCustomFontSize}
-              captionAppearanceStyle={captionAppearanceStyle}
-              onCaptionAppearanceStyleChange={setCaptionAppearanceStyle}
-              onGenerateCaption={handleGenerateCaption}
-              isGenerating={isLoadingCaption}
-              imageUploaded={!!imageBase64}
-              generateButtonDisabled={isGenerateButtonDisabled}
-              captionHelperText=""
-            />
-          </section>
+          <CaptionControls
+            length={captionLength}
+            onLengthChange={setCaptionLength}
+            style={captionStyle}
+            onStyleChange={setCaptionStyle}
+            emojiCount={emojiCount}
+            onEmojiCountChange={setEmojiCount}
+            inspirationText={inspirationText}
+            onInspirationTextChange={setInspirationText}
+            mustIncludeWords={mustIncludeWords}
+            onMustIncludeWordsChange={setMustIncludeWords}
+            textPosition={textPosition}
+            onTextPositionChange={setTextPosition}
+            textOpacity={textOpacity}
+            onTextOpacityChange={setTextOpacity}
+            customFontSize={customFontSize}
+            onCustomFontSizeChange={setCustomFontSize}
+            captionAppearanceStyle={captionAppearanceStyle}
+            onCaptionAppearanceStyleChange={setCaptionAppearanceStyle}
+            onGenerateCaption={handleGenerateCaption}
+            isGenerating={isLoadingCaption}
+            imageUploaded={!!imageBase64}
+            generateButtonDisabled={isGenerateButtonDisabled}
+            captionHelperText=""
+          />
         </div>
 
         <section className="p-6 bg-gray-800 rounded-lg shadow-xl lg:sticky lg:top-8 lg:self-start">
@@ -267,8 +270,6 @@ const CaptionTool: React.FC = () => {
           />
         </section>
       </main>
-
-      <footer className="text-center mt-12 py-6 border-t border-gray-700" />
     </div>
   );
 };
