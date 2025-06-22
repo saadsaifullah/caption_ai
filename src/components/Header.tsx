@@ -1,130 +1,133 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { signOut } from 'firebase/auth';
+import { auth, db } from '../firebase';
+import { doc, getDoc } from 'firebase/firestore';
+import { FaUserCircle } from 'react-icons/fa';
 
-const Hero: React.FC = () => {
+const Header = () => {
+  const { user } = useAuth();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [isAccessRestricted, setIsAccessRestricted] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
+
   useEffect(() => {
-    const targets = document.querySelectorAll('[data-target]');
-    const contents = document.querySelectorAll('.page-content');
-    const links = document.querySelectorAll('header .nav-header-link');
+    const checkAccess = async () => {
+      if (!user) {
+        setIsAccessRestricted(false);
+        return;
+      }
 
-    const showPage = (id: string) => {
-      contents.forEach(c => {
-        (c as HTMLElement).classList.toggle('hidden', c.id !== id);
-      });
+      const userRef = doc(db, 'users', user.uid);
+      const userSnap = await getDoc(userRef);
+      if (userSnap.exists()) {
+        const data = userSnap.data();
+        const hasPlan = !!data.plan && Date.now() < new Date(data.planExpires).getTime();
+        const tokens = data.tokens || 0;
+        const uploadCount = data.uploadCount || 0;
 
-      links.forEach(l => {
-        const el = l as HTMLElement;
-        if (el.dataset.target === id) {
-          el.classList.add('text-white', 'font-semibold');
-          el.classList.remove('text-gray-300');
-        } else {
-          el.classList.remove('text-white', 'font-semibold');
-          el.classList.add('text-gray-300');
-        }
-      });
-
-      window.scrollTo(0, 0);
+        setIsAccessRestricted(!hasPlan && tokens < 10 && uploadCount >= 5);
+      }
     };
 
-    targets.forEach(link => {
-      link.addEventListener('click', e => {
-        e.preventDefault();
-        const targetId = (e.currentTarget as HTMLElement).dataset.target;
-        if (targetId) showPage(targetId);
-      });
-    });
+    checkAccess();
+  }, [user]);
 
-    let pageId = 'page-home';
-    if (window.location.hash) {
-      const hash = window.location.hash.substring(1);
-      const candidate = `page-${hash}`;
-      if (document.getElementById(candidate)) pageId = candidate;
-    }
-
-    const targetEl = document.getElementById(pageId) ?? document.querySelector('.page-content');
-    if (targetEl) showPage((targetEl as HTMLElement).id);
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const handleLogout = async () => {
+    await signOut(auth);
+    navigate('/');
+  };
+
   return (
-    <>
-      {/* HERO SECTION */}
-      <section className="text-center py-24 md:py-36 bg-gradient-to-b from-[#0d1117] to-[#161b22] text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-radial from-pink-600/10 via-purple-500/5 to-transparent rounded-full w-[60vw] h-[60vw] mx-auto blur-3xl animate-pulse z-0" />
-        <div className="relative container mx-auto px-6 z-10">
-          <div className="max-w-3xl mx-auto">
-            <img
-              src="/HOME.jpg"
-              alt="Hero Visual"
-              className="w-full max-w-md mx-auto rounded-xl shadow-xl mb-10"
-            />
-            <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-4 text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-400 to-indigo-500 drop-shadow-lg text-glow">
-              Fulfill your fantasies
-            </h1>
-            <p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
-              Upload your image and let our advanced AI analyze the content, describe the scene, and generate the perfect caption.
-            </p>
-            <div className="flex justify-center space-x-4">
-              <a
-                href="/caption-tool"
-                className="bg-pink-500 hover:bg-pink-600 text-white font-bold py-3 px-8 rounded-lg transition-colors shadow-pink-500/30"
+    <header className="fixed top-0 left-0 right-0 z-50 bg-gray-900 text-white shadow">
+      <div className="container mx-auto px-6 py-4 flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Texotica Caption AI</h1>
+
+        <nav className="hidden md:flex items-center space-x-6">
+          <Link to="/" className="hover:text-purple-300">Home</Link>
+          {isAccessRestricted ? (
+            <span className="text-gray-500 cursor-not-allowed">App</span>
+          ) : (
+            <Link to="/caption-tool" className="hover:text-purple-300">App</Link>
+          )}
+          <Link to="/subscribe" className="hover:text-purple-300">Subscribe</Link>
+          <Link to="/how-it-works" className="hover:text-purple-300">How To Use</Link>
+
+          {user ? (
+            <div className="relative" ref={dropdownRef}>
+              <button
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+                className="ml-4 text-white text-2xl hover:text-purple-300"
               >
-                🚀 Try The App
-              </a>
-              <a
-                href="/subscribe"
-                className="bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-8 rounded-lg transition-colors"
-              >
-                💎 View Plans
-              </a>
+                <FaUserCircle />
+              </button>
+              {dropdownOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-white text-gray-800 rounded shadow-lg py-2 z-50">
+                  <Link to="/profile" className="block px-4 py-2 hover:bg-gray-100">👤 Profile</Link>
+                  <Link to="/change-password" className="block px-4 py-2 hover:bg-gray-100">🔒 Change Password</Link>
+                  <button
+                    onClick={handleLogout}
+                    className="block w-full text-left px-4 py-2 hover:bg-red-100 text-red-600"
+                  >
+                    🚪 Logout
+                  </button>
+                </div>
+              )}
             </div>
-          </div>
-        </div>
-      </section>
+          ) : (
+            <>
+              <Link to="/login" className="ml-4 px-4 py-1 border border-purple-500 rounded hover:bg-purple-600">Login</Link>
+              <Link to="/signup" className="ml-2 px-4 py-1 bg-purple-500 rounded hover:bg-purple-600 text-white">Sign Up</Link>
+            </>
+          )}
+        </nav>
 
-      {/* PROCESS SECTION */}
-      <section className="py-20 bg-[#161b22] border-y border-gray-800">
-        <div className="container mx-auto px-6">
-          <div className="text-center mb-12">
-            <h3 className="text-3xl md:text-4xl font-extrabold tracking-tight">A Simple, Powerful Process</h3>
-            <p className="text-gray-400 mt-2">Transform your images into captioned masterpieces in five easy steps.</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-            {[
-              { icon: '⬆️', title: 'Upload Image', desc: 'Upload any picture securely, SFW or NSFW.' },
-              { icon: '💡', title: 'AI Analysis', desc: 'Our AI understands content, not just pixels.' },
-              { icon: '⚙️', title: 'Choose Style', desc: 'Select themes like Hotwife, Cuckold, SPH, etc.' },
-              { icon: '💬', title: 'Generate Caption', desc: 'Let AI create tailored captions for your image.' },
-              { icon: '⬇️', title: 'Download & Share', desc: 'Ready-to-use images for posting or private use.' }
-            ].map((step, idx) => (
-              <div
-                key={idx}
-                className="bg-[#0d1117] p-6 border border-gray-700 rounded-2xl text-center hover:-translate-y-1 hover:border-pink-500 transition-all duration-300"
-              >
-                <div className="text-3xl mb-4">{step.icon}</div>
-                <h4 className="text-lg font-bold mb-2">{step.title}</h4>
-                <p className="text-sm text-gray-400">{step.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+        <button className="md:hidden" onClick={() => setMenuOpen(!menuOpen)}>
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round"
+              d={menuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} />
+          </svg>
+        </button>
+      </div>
 
-      {/* CTA SECTION */}
-      <section className="py-20 text-center">
-        <div className="container mx-auto px-6">
-          <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight mb-4">Ready to have fun?</h2>
-          <p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-8">
-            Try Texotica Caption AI for free and share your captions... or keep them just for yourself 😉
-          </p>
-          <a
-            href="/caption-tool"
-            className="bg-pink-500 hover:bg-pink-600 text-white font-bold py-4 px-10 rounded-lg transition-colors text-lg"
-          >
-            Get Started Now
-          </a>
+      {menuOpen && (
+        <div className="md:hidden px-6 pb-4 space-y-2">
+          <Link to="/" className="block hover:text-purple-300">Home</Link>
+          {isAccessRestricted ? (
+            <span className="block text-gray-500 cursor-not-allowed">App</span>
+          ) : (
+            <Link to="/caption-tool" className="block hover:text-purple-300">App</Link>
+          )}
+          <Link to="/subscribe" className="block hover:text-purple-300">Subscribe</Link>
+          <Link to="/how-it-works" className="block hover:text-purple-300">How To Use</Link>
+          {user ? (
+            <button onClick={handleLogout} className="block text-red-400 px-4 py-1 border border-red-500 rounded hover:bg-red-600">
+              Logout
+            </button>
+          ) : (
+            <>
+              <Link to="/login" className="block text-purple-400">Login</Link>
+              <Link to="/signup" className="block text-purple-400">Sign Up</Link>
+            </>
+          )}
         </div>
-      </section>
-    </>
+      )}
+    </header>
   );
 };
 
-export default Hero;
+export default Header;
