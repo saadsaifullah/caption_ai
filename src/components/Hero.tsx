@@ -1,4 +1,38 @@
 import React, { useEffect } from 'react';
+import {
+  UploadCloud,
+  Lightbulb,
+  Settings2,
+  MessageCircle,
+  Download
+} from 'lucide-react';
+const steps = [
+  {
+    icon: <UploadCloud size={32} className="text-blue-400" />,
+    title: '1. Upload Image',
+    description: 'Securely upload any picture from your device, SFW or NSFW.',
+  },
+  {
+    icon: <Lightbulb size={32} className="text-pink-500" />,
+    title: '2. AI Analysis',
+    description: 'Our AI analyzes the visual content, identifying objects, themes, and nuances.',
+  },
+  {
+    icon: <Settings2 size={32} className="text-yellow-400" />,
+    title: '3. Choose Style',
+    description: 'Choose from themes like Hotwife, Cuckold, Bully, SPH, Challenges, and much more.',
+  },
+  {
+    icon: <MessageCircle size={32} className="text-emerald-400" />,
+    title: '4. Generate Caption',
+    description: 'Based on its analysis, your preferences for style, length and visual appearance the AI crafts a caption.',
+  },
+  {
+    icon: <Download size={32} className="text-purple-400" />,
+    title: '5. Download & Share',
+    description: 'Your final image with its text overlay is ready to download and share.',
+  },
+];
 
 const Hero = () => {
   useEffect(() => {
@@ -91,53 +125,33 @@ const Hero = () => {
       </section>
 
       {/* Process Steps Section */}
-      <section className="py-20 bg-[#0d1117] text-white">
-        <div className="max-w-7xl mx-auto px-6 text-center">
-          <h2 className="text-4xl md:text-5xl font-bold mb-4">A Simple, Powerful Process</h2>
-          <p className="text-gray-400 mb-12 text-lg max-w-2xl mx-auto">
-            Transform your images into captioned masterpieces in five easy steps.
-          </p>
+      <section className="bg-[#0f0f11] text-white py-20 px-4 md:px-12">
+      <h2 className="text-3xl md:text-4xl font-bold text-center mb-2">
+        A Simple, Powerful Process
+      </h2>
+      <p className="text-gray-400 text-center mb-12">
+        Transform your images into captioned masterpieces in five easy steps.
+      </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-            {[
-              {
-                title: '1. Upload Image',
-                icon: '⬆️',
-                desc: 'Securely upload any picture from your device, SFW or NSFW.',
-              },
-              {
-                title: '2. AI Analysis',
-                icon: '💡',
-                desc: 'Our AI analyzes the visual content, identifying objects, themes, and nuances.',
-              },
-              {
-                title: '3. Choose Style',
-                icon: '⚙️',
-                desc: 'Choose from themes like Hotwife, Cuckold, Bully, SPH, Challenges, and much more.',
-              },
-              {
-                title: '4. Generate Caption',
-                icon: '💬',
-                desc: 'Based on its analysis and your preferences, the AI crafts a caption.',
-              },
-              {
-                title: '5. Download & Share',
-                icon: '⬇️',
-                desc: 'Your final image with its text overlay is ready to download and share.',
-              },
-            ].map((step, index) => (
-              <div
-                key={index}
-                className="transition-all duration-300 bg-[#161b22] p-6 rounded-xl shadow-md border border-gray-700 hover:scale-105 hover:border-pink-500 min-h-[300px] md:min-h-[320px] flex flex-col items-center justify-start"
-              >
-                <div className="text-3xl mb-4">{step.icon}</div>
-                <h3 className="text-xl font-semibold mb-2">{step.title}</h3>
-                <p className="text-gray-400 text-sm">{step.desc}</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+        {steps.map((step, index) => (
+          <div
+            key={index}
+            className={`rounded-xl border ${
+              index === 0 ? 'border-blue-400' : 'border-transparent'
+            } bg-[#1a1a1d] text-center p-6 h-full transition hover:shadow-lg`}
+          >
+            <div className="flex justify-center mb-4">
+              <div className="bg-[#131316] p-3 rounded-lg">
+                {step.icon}
               </div>
-            ))}
+            </div>
+            <h3 className="font-semibold text-lg mb-2">{step.title}</h3>
+            <p className="text-sm text-gray-400">{step.description}</p>
           </div>
-        </div>
-      </section>
+        ))}
+      </div>
+    </section>
         <section className="bg-[#0f0f11] text-white py-16 px-6 md:px-12 lg:px-24">
       <h2 className="text-4xl font-bold text-center mb-4">Built for You</h2>
       <p className="text-center text-lg text-gray-400 mb-12">
