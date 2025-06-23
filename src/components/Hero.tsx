@@ -138,6 +138,43 @@ const Hero = () => {
           </div>
         </div>
       </section>
+        <section className="bg-[#0f0f11] text-white py-16 px-6 md:px-12 lg:px-24">
+      <h2 className="text-4xl font-bold text-center mb-4">Built for You</h2>
+      <p className="text-center text-lg text-gray-400 mb-12">
+        TexoticaCaptionAI helps you live out your fantasy
+      </p>
+
+      <div className="grid md:grid-cols-2 gap-12 items-start">
+        {/* Left Side - Image or Animation */}
+        <div className="bg-[#1c1c1e] rounded-xl min-h-[300px] flex items-center justify-center text-gray-400 text-lg border border-gray-700">
+          Image/Animation of App
+        </div>
+
+        {/* Right Side - Text Features */}
+        <div className="space-y-8">
+          <div>
+            <h3 className="text-pink-400 text-xl font-semibold">Context-Aware Descriptions</h3>
+            <p className="text-gray-300 mt-2">
+              Our AI doesn't just see pixels; it understands context. From subtle glances to bold statements, it generates captions that truly match the mood of your image, handling a wide range of creative styles.
+            </p>
+          </div>
+
+          <div>
+            <h3 className="text-blue-400 text-xl font-semibold">Instant Text Overlays</h3>
+            <p className="text-gray-300 mt-2">
+              Why just generate a caption when you can embed it? The app seamlessly overlays the generated text onto your image, creating a finished product that's ready to post instantly.
+            </p>
+          </div>
+
+          <div>
+            <h3 className="text-green-400 text-xl font-semibold">SFW & NSFW Intelligence</h3>
+            <p className="text-gray-300 mt-2">
+              Designed with creators in mind, our AI is finely tuned to recognize content sensitivity, ensuring it provides fitting and appropriate descriptions whether your image is safe-for-work or artistically daring.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
     </>
   );
 };
