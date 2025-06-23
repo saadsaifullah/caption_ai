@@ -21,11 +21,15 @@ const Profile: React.FC = () => {
 
       const data = snap.data();
       const plan = data.plan;
-      const todayKey = new Date().toISOString().split('T')[0]; // e.g. "2025-07-12"
+      const todayKey = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
       const usageKey = `used_${todayKey}`;
       const usedToday = data[usageKey] || 0;
 
-      const dailyLimit = plan === 'yearly' ? 100 : plan === 'monthly' ? 50 : 0;
+      let dailyLimit = 0;
+      if (plan === 'yearly') dailyLimit = 100;
+      else if (plan === 'monthly') dailyLimit = 50;
+      else dailyLimit = 5; // free user
+
       const generationsLeft = dailyLimit - usedToday;
 
       const updatedUserData = {
@@ -51,8 +55,9 @@ const Profile: React.FC = () => {
     const ref = doc(db, 'users', user.uid);
     await updateDoc(ref, {
       plan: null,
+      planExpires: null,
     });
-    setUserData({ ...userData, plan: null });
+    setUserData({ ...userData, plan: null, planExpires: null });
     setShowConfirm(false);
   };
 
@@ -77,8 +82,11 @@ const Profile: React.FC = () => {
   const plan = userData?.plan;
   const todayKey = new Date().toISOString().split('T')[0];
   const usedToday = userData?.[`used_${todayKey}`] || 0;
-  const dailyLimit = plan === 'yearly' ? 100 : plan === 'monthly' ? 50 : 0;
-  const generationsLeft = plan ? dailyLimit - usedToday : 0;
+
+  const dailyLimit =
+    plan === 'yearly' ? 100 : plan === 'monthly' ? 50 : 5;
+
+  const generationsLeft = dailyLimit - usedToday;
 
   return (
     <div className="text-white p-8 bg-[#0d1117] min-h-screen">
