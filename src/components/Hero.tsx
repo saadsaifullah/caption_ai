@@ -176,7 +176,11 @@ const Hero = () => {
       <div className="grid md:grid-cols-2 gap-12 items-start">
         {/* Left Side - Image or Animation */}
         <div className="bg-[#1c1c1e] rounded-xl min-h-[300px] flex items-center justify-center text-gray-400 text-lg border border-gray-700">
-          Image/Animation of App
+           <img
+      src="/home.jpeg"
+      alt="App preview"
+      className="w-full h-full object-cover"
+    />
         </div>
 
         {/* Right Side - Text Features */}
