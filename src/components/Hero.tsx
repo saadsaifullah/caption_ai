@@ -65,9 +65,9 @@ const Hero = () => {
               alt="Hero Visual"
               className="w-full max-w-md mx-auto rounded-xl shadow-xl mb-10"
             />
-            <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-4 text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-400 to-indigo-500 drop-shadow-lg text-glow">
-              Fulfill your fantasies
-            </h1>
+             <h1 className="text-5xl md:text-6xl font-extrabold mb-6">
+        <span className="text-white drop-shadow-[0_0_15px_rgba(255,0,255,0.75)]">Fulfill your fantasies</span>
+      </h1>
             <p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
               Upload your image and let our advanced AI analyze the content, describe the scene,
               and generate the perfect caption. All in seconds.
