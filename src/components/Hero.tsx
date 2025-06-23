@@ -135,7 +135,7 @@ const Hero = () => {
       </section>
 
       {/* Process Steps Section */}
-         <section className="bg-[#0f0f11] text-white py-20 px-4 md:px-12">
+          <section className="bg-[#0f0f11] text-white py-20 px-4 md:px-12">
       <h2 className="text-3xl md:text-4xl font-bold text-center mb-2">
         A Simple, Powerful Process
       </h2>
