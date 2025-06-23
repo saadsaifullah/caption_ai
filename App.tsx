@@ -11,6 +11,7 @@ import Signup from './src/components/Signup';
 import Login from './src/components/Login';
 import Success from './src/Success';
 import Profile from './src/components/Profile';
+import ChangePassword from './src/components/ChangePassword';
 import ProtectedRoute from './src/components/ProtectedRoute';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 
@@ -42,6 +43,8 @@ const AppRoutes = () => {
       <Route path="/login" element={<Login />} />
       <Route path="/success" element={<Success />} />
       <Route path="/profile" element={<Profile />} />
+      <Route path="/change-password" element={<ChangePassword />} />
+
       <Route
         path="/caption-tool"
         element={
