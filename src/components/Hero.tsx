@@ -12,26 +12,36 @@ const steps = [
     icon: <UploadCloud size={32} className="text-blue-400" />,
     title: '1. Upload Image',
     description: 'Securely upload any picture from your device, SFW or NSFW.',
+    hoverColor: 'blue-400',
+    shadow: 'shadow-blue-500/40',
   },
   {
     icon: <Lightbulb size={32} className="text-pink-500" />,
     title: '2. AI Analysis',
     description: 'Our AI analyzes the visual content, identifying objects, themes, and nuances.',
+    hoverColor: 'pink-500',
+    shadow: 'shadow-pink-500/40',
   },
   {
     icon: <Settings2 size={32} className="text-yellow-400" />,
     title: '3. Choose Style',
     description: 'Choose from themes like Hotwife, Cuckold, Bully, SPH, Challenges, and much more.',
+    hoverColor: 'yellow-400',
+    shadow: 'shadow-yellow-500/40',
   },
   {
     icon: <MessageCircle size={32} className="text-emerald-400" />,
     title: '4. Generate Caption',
     description: 'Based on its analysis, your preferences for style, length and visual appearance the AI crafts a caption.',
+    hoverColor: 'emerald-400',
+    shadow: 'shadow-emerald-500/40',
   },
   {
     icon: <Download size={32} className="text-purple-400" />,
     title: '5. Download & Share',
     description: 'Your final image with its text overlay is ready to download and share.',
+    hoverColor: 'purple-400',
+    shadow: 'shadow-purple-500/40',
   },
 ];
 const Hero = () => {
@@ -90,6 +100,41 @@ const Hero = () => {
   return (
     <>
       {/* Hero Section */}
+      <section className="text-center py-24 md:py-36 bg-gradient-to-b from-[#0d1117] to-[#161b22] text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-radial from-pink-600/10 via-purple-500/5 to-transparent w-[60vw] h-[60vw] mx-auto blur-3xl animate-pulse z-0 rounded-full" />
+        <div className="relative container mx-auto px-6 z-10">
+          <div className="max-w-3xl mx-auto">
+            <img
+              src="/HOME.jpg"
+              alt="Hero Visual"
+              className="w-full max-w-md mx-auto rounded-xl shadow-xl mb-10"
+            />
+             <h1 className="text-5xl md:text-6xl font-extrabold mb-6">
+        <span className="text-white drop-shadow-[0_0_15px_rgba(255,0,255,0.75)]">Fulfill your fantasies</span>
+      </h1>
+            <p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
+              Upload your image and let our advanced AI analyze the content, describe the scene,
+              and generate the perfect caption. All in seconds.
+            </p>
+            <div className="flex justify-center space-x-4">
+              <a
+                href="/caption-tool"
+                className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-bold py-3 px-8 rounded-lg transition-all shadow-md shadow-pink-500/20 hover:scale-105"
+              >
+                 Try The App
+              </a>
+              <a
+                href="/subscribe"
+                className="bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 px-8 rounded-lg transition-all shadow-md shadow-gray-600/20 hover:scale-105"
+              >
+                 View Plans
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Process Steps Section */}
          <section className="bg-[#0f0f11] text-white py-20 px-4 md:px-12">
       <h2 className="text-3xl md:text-4xl font-bold text-center mb-2">
         A Simple, Powerful Process
@@ -102,36 +147,14 @@ const Hero = () => {
         {steps.map((step, index) => (
           <div
             key={index}
-            className="rounded-xl border border-transparent hover:border-blue-400 hover:shadow-md hover:shadow-blue-500/10 bg-[#1a1a1d] text-center p-6 h-full transition-all duration-300"
-          >
-            <div className="flex justify-center mb-4">
-              <div className="bg-[#131316] p-3 rounded-lg">
-                {step.icon}
-              </div>
-            </div>
-            <h3 className="font-semibold text-lg mb-2">{step.title}</h3>
-            <p className="text-sm text-gray-400">{step.description}</p>
-          </div>
-        ))}
-      </div>
-    </section>
-
-      {/* Process Steps Section */}
-      <section className="bg-[#0f0f11] text-white py-20 px-4 md:px-12">
-      <h2 className="text-3xl md:text-4xl font-bold text-center mb-2">
-        A Simple, Powerful Process
-      </h2>
-      <p className="text-gray-400 text-center mb-12">
-        Transform your images into captioned masterpieces in five easy steps.
-      </p>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
-        {steps.map((step, index) => (
-          <div
-            key={index}
-            className={`rounded-xl border ${
-              index === 0 ? 'border-blue-400' : 'border-transparent'
-            } bg-[#1a1a1d] text-center p-6 h-full transition hover:shadow-lg`}
+            className={`
+              group rounded-xl border border-transparent 
+              bg-[#1a1a1d] text-center p-6 h-full 
+              transform transition-all duration-300
+              hover:-translate-y-1 
+              hover:border-${step.hoverColor} 
+              hover:shadow-lg hover:${step.shadow}
+            `}
           >
             <div className="flex justify-center mb-4">
               <div className="bg-[#131316] p-3 rounded-lg">
