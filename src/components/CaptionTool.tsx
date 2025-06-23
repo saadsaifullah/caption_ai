@@ -30,7 +30,6 @@ const CaptionTool: React.FC = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
 
-  // Wait for auth initialization
   useEffect(() => {
     if (!loading && !user) {
       navigate('/login');
@@ -85,43 +84,6 @@ const CaptionTool: React.FC = () => {
   };
 
   const handleImageUpload = useCallback(async (file: File, base64: string) => {
-    if (!user) return;
-
-    const userRef = doc(db, 'users', user.uid);
-    const docSnap = await getDoc(userRef);
-    const userData = docSnap.exists() ? docSnap.data() : {};
-
-    const plan = userData.plan;
-    const planExpires = userData.planExpires ? new Date(userData.planExpires) : null;
-    const isPlanActive = plan && planExpires && planExpires > new Date();
-
-    const tokens = userData.tokens || 0;
-    const uploadCount = userData.uploadCount || 0;
-
-    const todayKey = new Date().toISOString().split('T')[0];
-    const usageKey = `used_${todayKey}`;
-    const usedToday = userData[usageKey] || 0;
-    const dailyLimit = plan === 'yearly' ? 100 : 50;
-
-    if (isPlanActive && usedToday >= dailyLimit) {
-      navigate('/subscribe?limit=You%20have%20reached%20your%20daily%20generation%20limit.');
-      return;
-    }
-
-    if (!isPlanActive && tokens < 10 && uploadCount >= 5) {
-      navigate('/subscribe?limit=You%20have%20reached%20your%20free%20upload%20limit.');
-      return;
-    }
-
-    const newData: any = {
-      uploadCount: uploadCount + 1,
-    };
-
-    if (!isPlanActive && tokens >= 10) newData.tokens = tokens - 10;
-    if (isPlanActive) newData[usageKey] = usedToday + 1;
-
-    await updateDoc(userRef, newData);
-
     clearAll();
     setUploadedImageFile(file);
     setImageBase64(base64);
@@ -142,9 +104,14 @@ const CaptionTool: React.FC = () => {
     } finally {
       setIsLoadingImageDescription(false);
     }
-  }, [user, apiKeyMissingError, navigate]);
+  }, [apiKeyMissingError]);
 
   const handleGenerateCaption = useCallback(async () => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
     if (apiKeyMissingError) {
       setError(apiKeyMissingError);
       return;
@@ -158,6 +125,41 @@ const CaptionTool: React.FC = () => {
       setError("Upload an image or provide inspiration text.");
       return;
     }
+
+    const userRef = doc(db, 'users', user.uid);
+    const docSnap = await getDoc(userRef);
+    const userData = docSnap.exists() ? docSnap.data() : {};
+
+    const plan = userData.plan;
+    const planExpires = userData.planExpires ? new Date(userData.planExpires) : null;
+    const isPlanActive = plan && planExpires && planExpires > new Date();
+
+    const tokens = userData.tokens || 0;
+    const uploadCount = userData.uploadCount || 0;
+
+    const todayKey = new Date().toISOString().split('T')[0];
+    const usageKey = `used_${todayKey}`;
+    const usedToday = userData[usageKey] || 0;
+    const dailyLimit = plan === 'yearly' ? 100 : plan === 'monthly' ? 50 : 5;
+
+    if (isPlanActive && usedToday >= dailyLimit) {
+      navigate('/subscribe?limit=You%20have%20reached%20your%20daily%20generation%20limit.');
+      return;
+    }
+
+    if (!isPlanActive && tokens < 10 && usedToday >= dailyLimit) {
+      navigate('/subscribe?limit=You%20have%20reached%20your%20free%20generation%20limit.');
+      return;
+    }
+
+    const newData: any = {
+      uploadCount: uploadCount + 1,
+      [usageKey]: usedToday + 1,
+    };
+
+    if (!isPlanActive && tokens >= 10) newData.tokens = tokens - 10;
+
+    await updateDoc(userRef, newData);
 
     setIsLoadingCaption(true);
     setError(null);
@@ -177,7 +179,18 @@ const CaptionTool: React.FC = () => {
     } finally {
       setIsLoadingCaption(false);
     }
-  }, [imageDescription, captionLength, captionStyle, inspirationText, mustIncludeWords, emojiCount, apiKeyMissingError, showSpicyImageMessage]);
+  }, [
+    user,
+    imageDescription,
+    captionLength,
+    captionStyle,
+    inspirationText,
+    mustIncludeWords,
+    emojiCount,
+    apiKeyMissingError,
+    showSpicyImageMessage,
+    navigate
+  ]);
 
   const isGenerateButtonDisabled =
     !imageBase64 ||
