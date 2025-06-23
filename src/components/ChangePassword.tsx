@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { updatePassword } from 'firebase/auth';
+import { updatePassword, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { auth } from '../firebase';
@@ -9,6 +9,7 @@ const ChangePassword: React.FC = () => {
   const navigate = useNavigate();
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [currentPassword, setCurrentPassword] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
@@ -18,12 +19,17 @@ const ChangePassword: React.FC = () => {
     setError('');
     setSuccess('');
 
-    if (!user) {
+    if (!user || !user.email) {
       setError('User not authenticated.');
       return;
     }
 
-    if (!newPassword || newPassword.length < 6) {
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      setError('All fields are required.');
+      return;
+    }
+
+    if (newPassword.length < 6) {
       setError('Password must be at least 6 characters long.');
       return;
     }
@@ -35,12 +41,23 @@ const ChangePassword: React.FC = () => {
 
     try {
       setLoading(true);
+
+      // 🔐 Re-authenticate first
+      const credential = EmailAuthProvider.credential(user.email, currentPassword);
+      await reauthenticateWithCredential(user, credential);
+
+      // 🔄 Then update password
       await updatePassword(user, newPassword);
       setSuccess('Password updated successfully!');
+      setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
     } catch (err: any) {
-      setError(err.message || 'Failed to update password.');
+      if (err.code === 'auth/wrong-password') {
+        setError('The current password is incorrect.');
+      } else {
+        setError(err.message || 'Failed to update password.');
+      }
     } finally {
       setLoading(false);
     }
@@ -56,6 +73,17 @@ const ChangePassword: React.FC = () => {
 
         <form onSubmit={handleChangePassword} className="space-y-4">
           <div>
+            <label className="block mb-1 text-sm">Current Password</label>
+            <input
+              type="password"
+              className="w-full px-4 py-2 rounded bg-[#0d1117] border border-gray-600 focus:ring-2 focus:ring-purple-500 focus:outline-none"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              required
+            />
+          </div>
+
+          <div>
             <label className="block mb-1 text-sm">New Password</label>
             <input
               type="password"
@@ -67,7 +95,7 @@ const ChangePassword: React.FC = () => {
           </div>
 
           <div>
-            <label className="block mb-1 text-sm">Confirm Password</label>
+            <label className="block mb-1 text-sm">Confirm New Password</label>
             <input
               type="password"
               className="w-full px-4 py-2 rounded bg-[#0d1117] border border-gray-600 focus:ring-2 focus:ring-purple-500 focus:outline-none"
