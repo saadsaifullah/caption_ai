@@ -13,46 +13,30 @@ const Subscribe: React.FC = () => {
   const [loading, setLoading] = useState(false);
 
   const handleCheckout = async (planId: string) => {
-    if (!user) {
-      alert('Please login first to buy a plan.');
-      return;
+  if (!user) {
+    alert('Please login first to buy a plan.');
+    return;
+  }
+
+  try {
+    const res = await fetch('/.netlify/functions/create-checkout-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ plan: planId })
+    });
+
+    const data = await res.json();
+    if (data?.url) {
+      window.location.href = data.url; // Redirect to Stripe Checkout
+    } else {
+      alert('Something went wrong. Please try again.');
     }
+  } catch (err) {
+    console.error('Checkout error:', err);
+    alert('Error connecting to payment server.');
+  }
+};
 
-    try {
-      const res = await fetch('/.netlify/functions/create-checkout-session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan: planId })
-      });
-
-      const data = await res.json();
-      if (data?.url) {
-        if (planId === 'monthly' || planId === 'yearly') {
-          const userRef = doc(db, 'users', user.uid);
-          const planData = {
-            plan: planId,
-            planExpires: planId === 'monthly'
-              ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
-              : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
-          };
-
-          const userSnap = await getDoc(userRef);
-          if (userSnap.exists()) {
-            await updateDoc(userRef, planData);
-          } else {
-            await setDoc(userRef, { ...planData });
-          }
-        }
-
-        window.location.href = data.url;
-      } else {
-        alert('Something went wrong. Please try again.');
-      }
-    } catch (err) {
-      console.error('Checkout error:', err);
-      alert('Error connecting to payment server.');
-    }
-  };
 
   return (
     <div className="bg-[#0d1117] text-white min-h-screen font-['Inter']">
