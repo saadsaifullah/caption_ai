@@ -1,6 +1,17 @@
 // src/context/AuthContext.tsx
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { onAuthStateChanged, User } from 'firebase/auth';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode
+} from 'react';
+import {
+  onAuthStateChanged,
+  setPersistence,
+  browserLocalPersistence,
+  User
+} from 'firebase/auth';
 import { auth } from '../firebase';
 
 interface AuthContextType {
@@ -18,11 +29,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      setUser(firebaseUser);
-      setAuthLoading(false);
-    });
-    return () => unsubscribe();
+    const initAuth = async () => {
+      try {
+        await setPersistence(auth, browserLocalPersistence);
+
+        const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+          setUser(firebaseUser);
+          setAuthLoading(false);
+        });
+
+        return unsubscribe;
+      } catch (error) {
+        console.error('Failed to set auth persistence:', error);
+        setAuthLoading(false);
+      }
+    };
+
+    const unsubscribePromise = initAuth();
+
+    return () => {
+      unsubscribePromise.then((unsubscribe) => {
+        if (typeof unsubscribe === 'function') unsubscribe();
+      });
+    };
   }, []);
 
   return (
