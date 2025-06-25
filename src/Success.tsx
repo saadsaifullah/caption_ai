@@ -9,7 +9,6 @@ const Success: React.FC = () => {
   const sessionId = new URLSearchParams(location.search).get('session_id');
 
   const [message, setMessage] = useState('🎉 Verifying your payment...');
-console.log("User in success page:", user);
 
   useEffect(() => {
     const verifyPayment = async () => {
