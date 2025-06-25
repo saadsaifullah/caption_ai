@@ -67,15 +67,15 @@ const Subscribe: React.FC = () => {
           <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight">Choose Your Plan</h2>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto items-stretch">
           {/* Monthly */}
-          <div className="bg-[#161b22] border border-gray-700 rounded-2xl p-8 flex flex-col shadow-md hover:scale-105 transition-transform duration-300">
+          <div className="bg-[#161b22] border border-gray-700 rounded-2xl p-8 flex flex-col shadow-md transform transition duration-300 ease-in-out hover:-translate-y-2 hover:ring-2 hover:ring-sky-400 hover:shadow-sky-500/30 h-full">
             <h3 className="text-2xl font-semibold mb-4 text-center text-purple-400">Monthly</h3>
             <div className="text-center text-4xl font-bold text-white">
               $9 <span className="text-gray-400 line-through text-xl">$14</span>
               <div className="text-sm font-medium text-gray-400">/month</div>
             </div>
-            <ul className="mt-6 space-y-2 text-sm text-gray-300">
+            <ul className="mt-6 space-y-2 text-sm text-gray-300 flex-grow">
               <li>✔ 50 Generations/Day</li>
               <li>✔ Daily Limit Reset</li>
               <li>✔ Standard Support</li>
@@ -89,14 +89,14 @@ const Subscribe: React.FC = () => {
           </div>
 
           {/* Yearly */}
-          <div className="bg-[#161b22] border-2 border-pink-500 rounded-2xl p-8 flex flex-col shadow-md hover:scale-105 transition-transform duration-300 relative">
+          <div className="bg-[#161b22] border-2 border-pink-500 rounded-2xl p-8 flex flex-col shadow-md transform transition duration-300 ease-in-out hover:-translate-y-2 hover:ring-2 hover:ring-pink-500 hover:shadow-pink-500/40 relative h-full">
             <div className="absolute top-0 right-0 bg-pink-500 text-xs font-bold text-white px-3 py-1 rounded-bl-lg">BEST VALUE</div>
             <h3 className="text-2xl font-semibold mb-4 text-center text-pink-400">Yearly</h3>
             <div className="text-center text-4xl font-bold text-white">
               $89 <span className="text-gray-400 line-through text-xl">$168</span>
               <div className="text-sm font-medium text-gray-400">/year</div>
             </div>
-            <ul className="mt-6 space-y-2 text-sm text-gray-300">
+            <ul className="mt-6 space-y-2 text-sm text-gray-300 flex-grow">
               <li>✔ 100 Generations/Day</li>
               <li>✔ Daily Limit Reset</li>
               <li>✔ Priority Support</li>
@@ -111,7 +111,7 @@ const Subscribe: React.FC = () => {
           </div>
 
           {/* Token Packs */}
-          <div className="bg-[#161b22] border border-gray-700 rounded-2xl p-8 flex flex-col shadow-md hover:scale-105 transition-transform duration-300">
+          <div className="bg-[#161b22] border border-gray-700 rounded-2xl p-8 flex flex-col shadow-md transform transition duration-300 ease-in-out hover:-translate-y-2 hover:ring-2 hover:ring-purple-400 hover:shadow-purple-500/30 h-full">
             <h3 className="text-2xl font-semibold mb-6 text-center text-purple-300">Token Packs</h3>
             <div className="space-y-6 flex-grow">
               <div className="p-4 border border-gray-600 rounded-lg bg-[#0d1117]">
