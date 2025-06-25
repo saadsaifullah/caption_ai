@@ -8,63 +8,67 @@ const Success: React.FC = () => {
   const { user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
-  const searchParams = new URLSearchParams(location.search);
-  const tokenParam = searchParams.get('tokens');
-
-  const [message, setMessage] = useState('🎉 Completing your purchase...');
+  const sessionId = new URLSearchParams(location.search).get('session_id');
+  const [message, setMessage] = useState('🎉 Verifying your payment...');
 
   useEffect(() => {
-    const handleSuccess = async () => {
-      if (!user) {
-        setMessage('❌ You must be logged in to apply your purchase.');
+    const verifySession = async () => {
+      if (!user || !sessionId) {
+        setMessage('❌ Missing user or session ID.');
         return;
       }
 
-      const userRef = doc(db, 'users', user.uid);
-      const userSnap = await getDoc(userRef);
+      try {
+        const res = await fetch(`/.netlify/functions/verify-checkout-session?session_id=${sessionId}`);
+        const data = await res.json();
 
-      // If it's a token pack
-      if (tokenParam) {
-        const tokens = parseInt(tokenParam);
-        if (isNaN(tokens) || tokens <= 0) {
-          setMessage('❌ Invalid token amount.');
+        if (!data.success) {
+          setMessage('❌ Payment not successful. Please contact support.');
           return;
         }
 
-        if (!userSnap.exists()) {
-          await setDoc(userRef, { tokens });
-          console.log('🆕 Created new user doc with tokens:', tokens);
+        const userRef = doc(db, 'users', user.uid);
+        const userSnap = await getDoc(userRef);
+
+        if (data.tokens) {
+          const tokens = parseInt(data.tokens);
+          const prevTokens = userSnap.exists() ? userSnap.data().tokens || 0 : 0;
+          const newTotal = prevTokens + tokens;
+
+          if (userSnap.exists()) {
+            await updateDoc(userRef, { tokens: newTotal });
+          } else {
+            await setDoc(userRef, { tokens: newTotal });
+          }
+
+          setMessage(`✅ You've received ${tokens} tokens.`);
+        } else if (data.plan) {
+          const duration = data.plan === 'monthly'
+            ? 30 * 24 * 60 * 60 * 1000
+            : 365 * 24 * 60 * 60 * 1000;
+
+          const planExpires = new Date(Date.now() + duration).toISOString();
+
+          if (userSnap.exists()) {
+            await updateDoc(userRef, { plan: data.plan, planExpires });
+          } else {
+            await setDoc(userRef, { plan: data.plan, planExpires });
+          }
+
+          setMessage(`✅ Your ${data.plan} plan is active until ${new Date(planExpires).toLocaleDateString()}.`);
         } else {
-          const prevTokens = userSnap.data().tokens || 0;
-          await updateDoc(userRef, { tokens: prevTokens + tokens });
-          console.log(`✅ Added ${tokens} tokens. Total: ${prevTokens + tokens}`);
+          setMessage('✅ Payment succeeded, but no product found.');
         }
 
-        setMessage(`✅ You’ve received ${tokens} tokens.`);
-      } else {
-        // Plan-based purchase (monthly/yearly)
-        if (!userSnap.exists()) {
-          setMessage('❌ User data not found. Please contact support.');
-          return;
-        }
-
-        const userData = userSnap.data();
-        const plan = userData.plan;
-        const planExpires = userData.planExpires;
-
-        if (plan && planExpires) {
-          setMessage(`✅ Your ${plan} plan is now active until ${new Date(planExpires).toLocaleDateString()}.`);
-        } else {
-          setMessage('✅ Subscription activated. Thank you!');
-        }
+        setTimeout(() => navigate('/caption-tool'), 4000);
+      } catch (error) {
+        console.error(error);
+        setMessage('❌ Error verifying payment. Please try again.');
       }
-
-      // Redirect after 4 seconds
-      setTimeout(() => navigate('/caption-tool'), 4000);
     };
 
-    handleSuccess();
-  }, [user, tokenParam, navigate]);
+    verifySession();
+  }, [user, sessionId, navigate]);
 
   return (
     <div className="flex items-center justify-center h-screen bg-gray-900 text-white">
