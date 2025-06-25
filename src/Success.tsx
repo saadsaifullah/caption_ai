@@ -1,20 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from './context/AuthContext';
 import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
 import { db } from './firebase';
 
 const Success: React.FC = () => {
-  const { user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const sessionId = new URLSearchParams(location.search).get('session_id');
+
   const [message, setMessage] = useState('🎉 Verifying your payment...');
 
   useEffect(() => {
-    const verifySession = async () => {
-      if (!user || !sessionId) {
-        setMessage('❌ Missing user or session ID.');
+    const verifyPayment = async () => {
+      if (!sessionId) {
+        setMessage('❌ Missing session ID.');
         return;
       }
 
@@ -22,32 +21,17 @@ const Success: React.FC = () => {
         const res = await fetch(`/.netlify/functions/verify-checkout-session?session_id=${sessionId}`);
         const data = await res.json();
 
-        if (!data.success) {
-          setMessage('❌ Payment not successful. Please contact support.');
+        if (!data.success || !data.uid) {
+          setMessage('❌ Error verifying payment. Please try again.');
           return;
         }
 
-        const userRef = doc(db, 'users', user.uid);
+        const userRef = doc(db, 'users', data.uid);
         const userSnap = await getDoc(userRef);
 
-        if (data.tokens) {
-          const tokens = parseInt(data.tokens);
-          const prevTokens = userSnap.exists() ? userSnap.data().tokens || 0 : 0;
-          const newTotal = prevTokens + tokens;
-
-          if (userSnap.exists()) {
-            await updateDoc(userRef, { tokens: newTotal });
-          } else {
-            await setDoc(userRef, { tokens: newTotal });
-          }
-
-          setMessage(`✅ You've received ${tokens} tokens.`);
-        } else if (data.plan) {
-          const duration = data.plan === 'monthly'
-            ? 30 * 24 * 60 * 60 * 1000
-            : 365 * 24 * 60 * 60 * 1000;
-
-          const planExpires = new Date(Date.now() + duration).toISOString();
+        if (data.plan) {
+          const duration = data.plan === 'monthly' ? 30 : 365;
+          const planExpires = new Date(Date.now() + duration * 24 * 60 * 60 * 1000).toISOString();
 
           if (userSnap.exists()) {
             await updateDoc(userRef, { plan: data.plan, planExpires });
@@ -56,19 +40,30 @@ const Success: React.FC = () => {
           }
 
           setMessage(`✅ Your ${data.plan} plan is active until ${new Date(planExpires).toLocaleDateString()}.`);
+        } else if (data.tokens) {
+          const prevTokens = userSnap.exists() ? userSnap.data().tokens || 0 : 0;
+          const newTotal = prevTokens + parseInt(data.tokens);
+
+          if (userSnap.exists()) {
+            await updateDoc(userRef, { tokens: newTotal });
+          } else {
+            await setDoc(userRef, { tokens: newTotal });
+          }
+
+          setMessage(`✅ You've received ${data.tokens} tokens.`);
         } else {
-          setMessage('✅ Payment succeeded, but no product found.');
+          setMessage('✅ Payment verified. Thank you!');
         }
 
         setTimeout(() => navigate('/caption-tool'), 4000);
       } catch (error) {
-        console.error(error);
-        setMessage('❌ Error verifying payment. Please try again.');
+        console.error('Error verifying payment:', error);
+        setMessage('❌ Server error verifying payment.');
       }
     };
 
-    verifySession();
-  }, [user, sessionId, navigate]);
+    verifyPayment();
+  }, [sessionId, navigate]);
 
   return (
     <div className="flex items-center justify-center h-screen bg-gray-900 text-white">
