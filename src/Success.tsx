@@ -1,17 +1,18 @@
+// /src/pages/Success.tsx
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
-import { db } from './firebase';
+import { db } from '../firebase';
+import { doc, setDoc, updateDoc, getDoc } from 'firebase/firestore';
 
 const Success: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const sessionId = new URLSearchParams(location.search).get('session_id');
-
-  const [message, setMessage] = useState('🎉 Verifying your payment...');
+  const searchParams = new URLSearchParams(location.search);
+  const sessionId = searchParams.get('session_id');
+  const [message, setMessage] = useState('🎉 Completing your purchase...');
 
   useEffect(() => {
-    const verifyPayment = async () => {
+    const verifySession = async () => {
       if (!sessionId) {
         setMessage('❌ Missing session ID.');
         return;
@@ -21,56 +22,59 @@ const Success: React.FC = () => {
         const res = await fetch(`/.netlify/functions/verify-checkout-session?session_id=${sessionId}`);
         const data = await res.json();
 
-        if (!data.success || !data.uid) {
+        if (!data.success) {
           setMessage('❌ Error verifying payment. Please try again.');
           return;
         }
 
-        const userRef = doc(db, 'users', data.uid);
+        const uid = data.uid;
+        if (!uid) {
+          setMessage('❌ No user ID found.');
+          return;
+        }
+
+        const userRef = doc(db, 'users', uid);
         const userSnap = await getDoc(userRef);
 
-        if (data.plan) {
-          const duration = data.plan === 'monthly' ? 30 : 365;
-          const planExpires = new Date(Date.now() + duration * 24 * 60 * 60 * 1000).toISOString();
-
-          if (userSnap.exists()) {
-            await updateDoc(userRef, { plan: data.plan, planExpires });
+        // Token Pack
+        if (data.tokens) {
+          const tokens = parseInt(data.tokens);
+          if (!userSnap.exists()) {
+            await setDoc(userRef, { tokens });
           } else {
-            await setDoc(userRef, { plan: data.plan, planExpires });
+            const prev = userSnap.data()?.tokens || 0;
+            await updateDoc(userRef, { tokens: prev + tokens });
           }
+          setMessage(`✅ You've received ${tokens} tokens!`);
+        }
 
-          setMessage(`✅ Your ${data.plan} plan is active until ${new Date(planExpires).toLocaleDateString()}.`);
-        } else if (data.tokens) {
-          const prevTokens = userSnap.exists() ? userSnap.data().tokens || 0 : 0;
-          const newTotal = prevTokens + parseInt(data.tokens);
-
-          if (userSnap.exists()) {
-            await updateDoc(userRef, { tokens: newTotal });
-          } else {
-            await setDoc(userRef, { tokens: newTotal });
-          }
-
-          setMessage(`✅ You've received ${data.tokens} tokens.`);
-        } else {
-          setMessage('✅ Payment verified. Thank you!');
+        // Plan
+        if (data.plan === 'monthly' || data.plan === 'yearly') {
+          const expires = new Date();
+          expires.setMonth(expires.getMonth() + (data.plan === 'monthly' ? 1 : 12));
+          await updateDoc(userRef, {
+            plan: data.plan,
+            planExpires: expires.toISOString()
+          });
+          setMessage(`✅ Your ${data.plan} plan is now active.`);
         }
 
         setTimeout(() => navigate('/caption-tool'), 4000);
-      } catch (error) {
-        console.error('Error verifying payment:', error);
-        setMessage('❌ Server error verifying payment.');
+      } catch (err) {
+        console.error('Success error:', err);
+        setMessage('❌ Could not verify session.');
       }
     };
 
-    verifyPayment();
+    verifySession();
   }, [sessionId, navigate]);
 
   return (
     <div className="flex items-center justify-center h-screen bg-gray-900 text-white">
-      <div className="text-center max-w-lg px-4">
+      <div className="text-center">
         <h1 className="text-3xl font-bold mb-4">🎉 Payment Success</h1>
-        <p className="text-lg">{message}</p>
-        <p className="text-sm mt-2 text-gray-400">Redirecting you shortly...</p>
+        <p>{message}</p>
+        <p className="text-sm text-gray-400 mt-2">Redirecting you shortly...</p>
       </div>
     </div>
   );
