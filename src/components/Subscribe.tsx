@@ -22,7 +22,7 @@ const Subscribe: React.FC = () => {
     const res = await fetch('/.netlify/functions/create-checkout-session', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ plan: planId })
+      body: JSON.stringify({ plan: planId,  uid: user.uid })
     });
 
     const data = await res.json();
