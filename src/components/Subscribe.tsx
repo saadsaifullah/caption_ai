@@ -63,9 +63,14 @@ const Subscribe: React.FC = () => {
           </div>
         )}
 
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight">Choose Your Plan</h2>
-        </div>
+       <div className="text-center mb-16">
+  <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight 
+    text-transparent bg-clip-text 
+    bg-gradient-to-r from-pink-500 via-purple-500 to-pink-500 
+    drop-shadow-[0_0_10px_rgba(236,72,153,0.6)]">
+    Choose Your Plan
+  </h2>
+</div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto items-stretch">
           {/* Monthly */}
