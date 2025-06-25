@@ -2,69 +2,71 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 
 const HowItWorks: React.FC = () => {
+  const steps = [
+    {
+      step: 1,
+      title: 'Upload With Ease',
+      desc: "Navigate to the 'App' page. Drag & drop or browse your image. JPG, PNG, and WebP are supported — secure and private.",
+      icon: '⬆️',
+      border: 'border-cyan-500',
+      shadow: 'shadow-cyan-500/30'
+    },
+    {
+      step: 2,
+      title: 'Define Your Fantasy',
+      desc: 'Pick a theme like Hotwife, Cuckold, SPH, Dares, Challenges. Add custom names or specific words into your erotic narrative.',
+      icon: '📝',
+      border: 'border-pink-500',
+      shadow: 'shadow-pink-500/30'
+    },
+    {
+      step: 3,
+      title: 'Ignite the AI & Perfect the Seduction',
+      desc: "Click 'Generate' and let the AI do the work. Not satisfied? Try variations until it's perfect.",
+      icon: '⚡',
+      border: 'border-purple-500',
+      shadow: 'shadow-purple-500/30'
+    },
+    {
+      step: 4,
+      title: 'Claim Your Story',
+      desc: "Copy your finalized NSFW caption. It's ready for your personal enjoyment or trusted sharing.",
+      icon: '📋',
+      border: 'border-teal-500',
+      shadow: 'shadow-teal-500/30'
+    },
+  ];
+
   return (
     <div className="text-white font-inter bg-[#0d1117]">
-      {/* Header */}
-  
-
-      {/* Main Content */}
       <main className="container mx-auto px-6 py-12 md:py-20">
+        {/* Header */}
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight">How It Works</h2>
+          <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-500">
+            Ignite Your Imagination: Crafting Your NSFW Masterpiece
+          </h2>
           <p className="text-lg md:text-xl text-gray-400 mt-4 max-w-3xl mx-auto">
-            Unleash your creativity with our simple and intuitive caption generation process.
+            Explore the art of seduction and storytelling. Follow these steps to create intensely personal, AI-generated captions.
           </p>
         </div>
 
-        {/* Steps */}
-        <div className="max-w-4xl mx-auto space-y-12">
-          {[
-            {
-              step: 1,
-              title: 'Upload Your Image',
-              desc: 'Begin by selecting an image from your device... secure and private.',
-              color: 'blue'
-            },
-            {
-              step: 2,
-              title: 'Let the AI Analyze',
-              desc: 'Our powerful AI gets to work... make your picture unique.',
-              color: 'pink'
-            },
-            {
-              step: 3,
-              title: 'Choose Your Style & Preferences',
-              desc: 'Dive into a vast selection of themes... perfectly match your fantasy.',
-              color: 'amber'
-            },
-            {
-              step: 4,
-              title: 'Generate & Refine',
-              desc: "With your preferences set... explore different creative angles.",
-              color: 'teal'
-            },
-            {
-              step: 5,
-              title: 'Download Your Creation',
-              desc: "The app overlays your caption... ready to download and share.",
-              color: 'purple'
-            },
-          ].map(({ step, title, desc, color }, index) => (
-            <div key={step} className={`md:flex items-center ${index % 2 === 1 ? 'flex-row-reverse' : ''} gap-8`}>
-              <div className="flex-shrink-0 mb-6 md:mb-0">
-                <div className={`flex items-center justify-center h-24 w-24 rounded-full bg-${color}-500/10 text-${color}-400 mx-auto border-2 border-${color}-500`}>
-                  <span className="text-4xl font-bold">{step}</span>
-                </div>
-              </div>
-              <div>
-                <h3 className="text-2xl font-bold mb-3">{title}</h3>
-                <p className="text-gray-400">{desc}</p>
-              </div>
+        {/* Steps Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-20">
+          {steps.map((step, index) => (
+            <div
+              key={index}
+              className={`bg-[#161b22] p-6 rounded-xl border-2 ${step.border} transition-transform transform hover:scale-105 hover:${step.shadow} shadow-lg`}
+            >
+              <div className="text-4xl mb-4">{step.icon}</div>
+              <h3 className="text-xl font-semibold mb-3 text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-400 to-indigo-500">
+                {step.step}. {step.title}
+              </h3>
+              <p className="text-gray-400 text-sm">{step.desc}</p>
             </div>
           ))}
         </div>
 
-        {/* FAQ */}
+        {/* FAQ Section (unchanged) */}
         <section className="mt-24">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">Frequently Asked Questions</h2>
