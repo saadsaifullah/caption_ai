@@ -1,7 +1,7 @@
 // /src/pages/Success.tsx
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { db } from '../firebase';
+import { db } from './firebase';
 import { doc, setDoc, updateDoc, getDoc } from 'firebase/firestore';
 
 const Success: React.FC = () => {
