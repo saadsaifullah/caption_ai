@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { doc, setDoc, updateDoc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 
 const Subscribe: React.FC = () => {
@@ -13,30 +12,29 @@ const Subscribe: React.FC = () => {
   const [loading, setLoading] = useState(false);
 
   const handleCheckout = async (planId: string) => {
-  if (!user) {
-    alert('Please login first to buy a plan.');
-    return;
-  }
-
-  try {
-    const res = await fetch('/.netlify/functions/create-checkout-session', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ plan: planId,  uid: user.uid })
-    });
-
-    const data = await res.json();
-    if (data?.url) {
-      window.location.href = data.url; // Redirect to Stripe Checkout
-    } else {
-      alert('Something went wrong. Please try again.');
+    if (!user) {
+      alert('Please login first to buy a plan.');
+      return;
     }
-  } catch (err) {
-    console.error('Checkout error:', err);
-    alert('Error connecting to payment server.');
-  }
-};
 
+    try {
+      const res = await fetch('/.netlify/functions/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan: planId, uid: user.uid })
+      });
+
+      const data = await res.json();
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        alert('Something went wrong. Please try again.');
+      }
+    } catch (err) {
+      console.error('Checkout error:', err);
+      alert('Error connecting to payment server.');
+    }
+  };
 
   return (
     <div className="bg-[#0d1117] text-white min-h-screen font-['Inter']">
@@ -47,16 +45,38 @@ const Subscribe: React.FC = () => {
           </div>
         )}
 
-       <div className="text-center mb-16">
-  <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight 
-    text-transparent bg-clip-text 
-    bg-gradient-to-r from-pink-500 via-purple-500 to-pink-500 
-    drop-shadow-[0_0_10px_rgba(236,72,153,0.6)]">
-    Choose Your Plan
-  </h2>
-</div>
+        <div className="text-center mb-16">
+          <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight 
+            text-transparent bg-clip-text 
+            bg-gradient-to-r from-pink-500 via-purple-500 to-pink-500 
+            drop-shadow-[0_0_10px_rgba(236,72,153,0.6)]">
+            Choose Your Plan
+          </h2>
+        </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto items-stretch">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto items-stretch">
+          
+          {/* Free Tier (Only if NOT logged in) */}
+          {!user && (
+            <div className="bg-[#161b22] border border-gray-700 rounded-2xl p-8 flex flex-col shadow-md transform transition duration-300 ease-in-out hover:-translate-y-2 hover:ring-2 hover:ring-gray-500 hover:shadow-gray-500/30 h-full">
+              <h3 className="text-2xl font-semibold mb-4 text-center text-gray-400">Free</h3>
+              <div className="text-center text-4xl font-bold text-white">
+                $0
+              </div>
+              <ul className="mt-6 space-y-2 text-sm text-gray-300 flex-grow">
+                <li>✔ 5 Generations/Day</li>
+                <li>✘ No Support</li>
+                <li>✘ No Access to Upcoming Features</li>
+              </ul>
+              <button
+                disabled
+                className="mt-8 bg-gray-700 text-white py-2 px-4 rounded-lg font-bold text-sm opacity-60 cursor-not-allowed"
+              >
+                Default Plan
+              </button>
+            </div>
+          )}
+
           {/* Monthly */}
           <div className="bg-[#161b22] border border-gray-700 rounded-2xl p-8 flex flex-col shadow-md transform transition duration-300 ease-in-out hover:-translate-y-2 hover:ring-2 hover:ring-sky-400 hover:shadow-sky-500/30 h-full">
             <h3 className="text-2xl font-semibold mb-4 text-center text-purple-400">Monthly</h3>
