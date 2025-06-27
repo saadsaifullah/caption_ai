@@ -73,11 +73,11 @@ const HowItWorks: React.FC = () => {
           </div>
           <div className="max-w-4xl mx-auto space-y-6">
             {[
-              { q: 'Is my content kept private?', a: 'Absolutely. Your privacy is our top priority...' },
-              { q: 'What kind of images can I use?', a: 'Our AI is designed to handle a wide spectrum of content...' },
-              { q: "What if my image is 'too spicy' for the AI?", a: 'You can describe the scene manually...' },
-              { q: 'Can I customize the look of the text?', a: 'Yes! Choose from different fonts, colors, sizes, and positions...' },
-              { q: "What if I don't like the first caption?", a: 'Generate as many captions as you like...' },
+              { q: 'Is my content kept private?', a: 'Absolutely. Your privacy is our top priority. All uploaded images and generated captions are processed securely and are never stored on our servers or shared with anyone.' },
+              { q: 'What kind of images can I use?', a: 'Our AI is designed to handle a wide spectrum of content, from safe-for-work (SFW) to not-safe-for-work (NSFW). We encourage creative freedom, but please ensure your content complies with legal standards.' },
+              { q: "What if my image is 'too spicy' for the AI?", a: 'No problem. If our auto-recognition feature cant process your image, you will have the option to describe the scene yourself. This manual input ensures you can still get the perfect caption for any picture, no matter how unique or daring it is.' },
+              { q: 'Can I customize the look of the text?', a: 'Yes! The app offers various customization options for text overlays. You can choose from different fonts, colors, sizes, and positioning to ensure the caption s visual style perfectly complements your image.' },
+              { q: "What if I don't like the first caption?", a: 'No problem at all. You can generate multiple captions for a single image. Simply click the Generate button again, and our AI will provide a new, creative take based on your selected preferences.' },
             ].map(({ q, a }, idx) => (
               <details key={idx} className="step-card p-6 rounded-lg cursor-pointer border border-[#30363d] bg-[#161b22]">
                 <summary className="font-semibold text-lg">{q}</summary>
