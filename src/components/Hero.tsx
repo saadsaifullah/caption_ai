@@ -177,7 +177,7 @@ const Hero = () => {
         {/* Left Side - Image or Animation */}
         <div className="bg-[#1c1c1e] rounded-xl min-h-[300px] flex items-center justify-center text-gray-400 text-lg border border-gray-700">
            <img
-              src="/HOME.jpg"
+              src="/HOME1.jpg"
               alt="Hero Visual"
               className="w-full max-w-md mx-auto rounded-xl shadow-xl mb-10"
             />
