@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { db } from '../firebase';
 
 const Subscribe: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const searchParams = new URLSearchParams(location.search);
   const limitMessage = searchParams.get('limit');
 
@@ -54,7 +55,7 @@ const Subscribe: React.FC = () => {
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto items-stretch">
+        <div className={`grid ${user ? 'lg:grid-cols-3' : 'lg:grid-cols-4'} grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto items-stretch`}>
           
           {/* Free Tier (Only if NOT logged in) */}
           {!user && (
@@ -69,10 +70,10 @@ const Subscribe: React.FC = () => {
                 <li>✘ No Access to Upcoming Features</li>
               </ul>
               <button
-                disabled
-                className="mt-8 bg-gray-700 text-white py-2 px-4 rounded-lg font-bold text-sm opacity-60 cursor-not-allowed"
+                onClick={() => navigate('/signup')}
+                className="mt-8 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white py-2 px-4 rounded-lg font-bold text-sm transition-all duration-300"
               >
-                Default Plan
+                Sign Up
               </button>
             </div>
           )}
