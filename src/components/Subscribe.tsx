@@ -38,7 +38,7 @@ const Subscribe: React.FC = () => {
   };
 
   return (
-    <div className="bg-[#0d1117] text-white min-h-screen font-['Inter']">
+    <div className="bg-[#0d1117] text-white min-h-screen font-sora">
       <main className="container mx-auto px-6 py-12 md:py-20">
         {limitMessage && (
           <div className="max-w-2xl mx-auto mb-8 p-4 bg-yellow-200 text-yellow-800 rounded-lg border border-yellow-400 text-center shadow">
