@@ -1,9 +1,24 @@
+// netlify/functions/webhook.ts
 import Stripe from 'stripe';
 import { buffer } from 'micro';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { db } from '../../src/firebase'; // adjust if your path is different
+import { initializeApp, cert, getApps } from 'firebase-admin/app';
+import { getFirestore } from 'firebase-admin/firestore';
+
+// Initialize Firebase Admin (only once)
+if (!getApps().length) {
+  initializeApp({
+    credential: cert({
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+    }),
+  });
+}
+
+const db = getFirestore();
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2023-10-16',
 });
 
 export const config = {
@@ -14,7 +29,6 @@ export const config = {
 
 export const handler = async (event: any) => {
   const sig = event.headers['stripe-signature'];
-
   let stripeEvent;
 
   try {
@@ -39,23 +53,24 @@ export const handler = async (event: any) => {
       return { statusCode: 200, body: 'Missing UID. Skipping update.' };
     }
 
-    const userRef = doc(db, 'users', uid);
-    const userSnap = await getDoc(userRef);
+    const userRef = db.collection('users').doc(uid);
+    const userSnap = await userRef.get();
 
-    // Token purchase
     if (tokens) {
-      const prevTokens = userSnap.exists() ? userSnap.data()?.tokens || 0 : 0;
-      await setDoc(userRef, { tokens: prevTokens + tokens }, { merge: true });
+      const prevTokens = userSnap.exists ? userSnap.data()?.tokens || 0 : 0;
+      await userRef.set({ tokens: prevTokens + tokens }, { merge: true });
     }
 
-    // Subscription purchase
     if (plan === 'monthly' || plan === 'yearly') {
       const expires = new Date();
       expires.setMonth(expires.getMonth() + (plan === 'monthly' ? 1 : 12));
-      await setDoc(userRef, {
-        plan,
-        planExpires: expires.toISOString()
-      }, { merge: true });
+      await userRef.set(
+        {
+          plan,
+          planExpires: expires.toISOString(),
+        },
+        { merge: true }
+      );
     }
 
     console.log(`✅ Firestore updated for user ${uid}`);
