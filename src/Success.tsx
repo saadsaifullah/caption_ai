@@ -2,8 +2,8 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
-import { db } from '../firebase';
-import { useAuth } from '../context/AuthContext';
+import { db } from './firebase';
+import { useAuth } from './context/AuthContext';
 
 const Success: React.FC = () => {
   const location = useLocation();
