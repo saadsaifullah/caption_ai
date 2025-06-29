@@ -1,6 +1,6 @@
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!); // No apiVersion here
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {});
 
 export const config = {
   api: {
@@ -27,22 +27,18 @@ export const handler = async (event: any) => {
     };
   }
 
-  // ✅ Log session for debugging
+  // ✅ Just log the session; Firestore update is done in frontend
   if (stripeEvent.type === 'checkout.session.completed') {
     const session = stripeEvent.data.object as Stripe.Checkout.Session;
-
-    console.log('✅ Checkout session completed:', {
+    console.log('✅ Session completed:', {
       uid: session.metadata?.uid,
       plan: session.metadata?.plan,
       tokens: session.metadata?.tokens,
     });
-
-    // You are handling Firestore on the frontend now,
-    // so we only log and acknowledge the webhook.
   }
 
   return {
     statusCode: 200,
-    body: 'Webhook received successfully',
+    body: 'Webhook received',
   };
 };
