@@ -1,13 +1,13 @@
-// netlify/functions/webhook.ts
 import Stripe from 'stripe';
-import { buffer } from 'micro';
-import { initializeApp, cert, getApps } from 'firebase-admin/app';
-import { getFirestore } from 'firebase-admin/firestore';
+import * as admin from 'firebase-admin';
 
-// Initialize Firebase Admin (only once)
-if (!getApps().length) {
-  initializeApp({
-    credential: cert({
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+});
+
+// Initialize Firebase Admin if not already initialized
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert({
       projectId: process.env.FIREBASE_PROJECT_ID,
       clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
       privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
@@ -15,12 +15,7 @@ if (!getApps().length) {
   });
 }
 
-const db = getFirestore();
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2023-10-16',
-});
-
+const db = admin.firestore();
 export const config = {
   api: {
     bodyParser: false,
@@ -29,6 +24,7 @@ export const config = {
 
 export const handler = async (event: any) => {
   const sig = event.headers['stripe-signature'];
+
   let stripeEvent;
 
   try {
@@ -39,7 +35,10 @@ export const handler = async (event: any) => {
     );
   } catch (err: any) {
     console.error('❌ Webhook signature verification failed:', err.message);
-    return { statusCode: 400, body: `Webhook Error: ${err.message}` };
+    return {
+      statusCode: 400,
+      body: `Webhook Error: ${err.message}`,
+    };
   }
 
   if (stripeEvent.type === 'checkout.session.completed') {
@@ -56,11 +55,13 @@ export const handler = async (event: any) => {
     const userRef = db.collection('users').doc(uid);
     const userSnap = await userRef.get();
 
+    // ✅ Update tokens
     if (tokens) {
       const prevTokens = userSnap.exists ? userSnap.data()?.tokens || 0 : 0;
       await userRef.set({ tokens: prevTokens + tokens }, { merge: true });
     }
 
+    // ✅ Update subscription
     if (plan === 'monthly' || plan === 'yearly') {
       const expires = new Date();
       expires.setMonth(expires.getMonth() + (plan === 'monthly' ? 1 : 12));
@@ -76,5 +77,8 @@ export const handler = async (event: any) => {
     console.log(`✅ Firestore updated for user ${uid}`);
   }
 
-  return { statusCode: 200, body: 'Webhook received' };
+  return {
+    statusCode: 200,
+    body: 'Webhook received',
+  };
 };
