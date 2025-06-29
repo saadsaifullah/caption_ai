@@ -2,7 +2,6 @@
 import Stripe from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2022-11-15' // Add your preferred version
 });
 
 export const handler = async (event: any) => {
