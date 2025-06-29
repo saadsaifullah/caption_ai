@@ -1,8 +1,6 @@
-// netlify/functions/webhook.ts
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-});
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!); // No apiVersion here
 
 export const config = {
   api: {
@@ -29,14 +27,22 @@ export const handler = async (event: any) => {
     };
   }
 
-  // Optional logging
+  // ✅ Log session for debugging
   if (stripeEvent.type === 'checkout.session.completed') {
     const session = stripeEvent.data.object as Stripe.Checkout.Session;
-    console.log(`✅ Session Completed for user UID: ${session.metadata?.uid}`);
+
+    console.log('✅ Checkout session completed:', {
+      uid: session.metadata?.uid,
+      plan: session.metadata?.plan,
+      tokens: session.metadata?.tokens,
+    });
+
+    // You are handling Firestore on the frontend now,
+    // so we only log and acknowledge the webhook.
   }
 
   return {
     statusCode: 200,
-    body: '✅ Webhook received successfully',
+    body: 'Webhook received successfully',
   };
 };
