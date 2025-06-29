@@ -2,7 +2,6 @@
 import Stripe from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2023-10-16', // use your current Stripe API version
 });
 
 export const config = {
@@ -30,14 +29,14 @@ export const handler = async (event: any) => {
     };
   }
 
-  // ✅ You can log or process different event types if needed
+  // Optional logging
   if (stripeEvent.type === 'checkout.session.completed') {
     const session = stripeEvent.data.object as Stripe.Checkout.Session;
-    console.log(`✅ Checkout completed for session: ${session.id}`);
+    console.log(`✅ Session Completed for user UID: ${session.metadata?.uid}`);
   }
 
   return {
     statusCode: 200,
-    body: '✅ Webhook received and verified',
+    body: '✅ Webhook received successfully',
   };
 };
