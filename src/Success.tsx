@@ -1,29 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from './context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const Success: React.FC = () => {
-  const { user } = useAuth();
-  const location = useLocation();
+  const [message, setMessage] = useState('🎉 Thank you! Your payment was successful.');
   const navigate = useNavigate();
-  const [message, setMessage] = useState('🎉 Payment Success');
 
   useEffect(() => {
-    const query = new URLSearchParams(location.search);
-    const sessionId = query.get('session_id');
-
-    if (!user || !sessionId) {
-      setMessage('❌ Missing session ID or user not logged in.');
-    } else {
-      setMessage('🎉 Payment successful! Your account is being updated.');
-    }
-
     const timer = setTimeout(() => {
       navigate('/caption-tool');
     }, 5000);
 
     return () => clearTimeout(timer);
-  }, [location, user, navigate]);
+  }, [navigate]);
 
   return (
     <div className="flex items-center justify-center h-screen bg-gray-900 text-white">

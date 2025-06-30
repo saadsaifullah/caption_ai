@@ -1,11 +1,8 @@
 import Stripe from 'stripe';
 import * as admin from 'firebase-admin';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {});
 
-});
-
-// ✅ Initialize Firebase Admin
 if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.cert({
@@ -28,7 +25,6 @@ export const handler = async (event: any) => {
   const sig = event.headers['stripe-signature'];
 
   let stripeEvent;
-
   try {
     stripeEvent = stripe.webhooks.constructEvent(
       Buffer.from(event.body, 'utf8'),
@@ -37,13 +33,9 @@ export const handler = async (event: any) => {
     );
   } catch (err: any) {
     console.error('❌ Webhook signature verification failed:', err.message);
-    return {
-      statusCode: 400,
-      body: `Webhook Error: ${err.message}`,
-    };
+    return { statusCode: 400, body: `Webhook Error: ${err.message}` };
   }
 
-  // ✅ Handle checkout session
   if (stripeEvent.type === 'checkout.session.completed') {
     const session = stripeEvent.data.object as Stripe.Checkout.Session;
     const uid = session.metadata?.uid;
@@ -51,20 +43,18 @@ export const handler = async (event: any) => {
     const tokens = parseInt(session.metadata?.tokens || '0');
 
     if (!uid) {
-      console.warn('⚠️ Missing UID in metadata. Skipping Firestore update.');
-      return { statusCode: 200, body: 'Missing UID. Skipping update.' };
+      console.warn('⚠️ Missing UID in metadata');
+      return { statusCode: 200, body: 'Missing UID. Skipping.' };
     }
 
     const userRef = db.collection('users').doc(uid);
     const userSnap = await userRef.get();
 
-    // ✅ Add tokens
     if (tokens) {
       const prevTokens = userSnap.exists ? userSnap.data()?.tokens || 0 : 0;
       await userRef.set({ tokens: prevTokens + tokens }, { merge: true });
     }
 
-    // ✅ Add subscription plan
     if (plan === 'monthly' || plan === 'yearly') {
       const expires = new Date();
       expires.setMonth(expires.getMonth() + (plan === 'monthly' ? 1 : 12));
@@ -80,8 +70,5 @@ export const handler = async (event: any) => {
     console.log(`✅ Firestore updated for user ${uid}`);
   }
 
-  return {
-    statusCode: 200,
-    body: 'Webhook received',
-  };
+  return { statusCode: 200, body: 'Webhook received' };
 };
