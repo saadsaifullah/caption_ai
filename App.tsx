@@ -1,9 +1,8 @@
-// App.tsx
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Header from "./src/components/Header";
-import Hero from "./src/components/Hero";
-import CTA from "./src/components/CTA";
-import Footer from "./src/components/Footer";
+import Header from './src/components/Header';
+import Hero from './src/components/Hero';
+import CTA from './src/components/CTA';
+import Footer from './src/components/Footer';
 import HowItWorks from './src/components/HowItWorks';
 import Subscribe from './src/components/Subscribe';
 import CaptionTool from './src/components/CaptionTool';
@@ -13,6 +12,7 @@ import Success from './src/Success';
 import Profile from './src/components/Profile';
 import ChangePassword from './src/components/ChangePassword';
 import ProtectedRoute from './src/components/ProtectedRoute';
+import ForgotPassword from './src/components/ForgotPassword'; // ✅ NEW IMPORT
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 
 const AppRoutes = () => {
@@ -41,6 +41,7 @@ const AppRoutes = () => {
       <Route path="/subscribe" element={<Subscribe />} />
       <Route path="/signup" element={<Signup />} />
       <Route path="/login" element={<Login />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} /> {/* ✅ New Route */}
       <Route path="/success" element={<Success />} />
       <Route path="/profile" element={<Profile />} />
       <Route path="/change-password" element={<ChangePassword />} />

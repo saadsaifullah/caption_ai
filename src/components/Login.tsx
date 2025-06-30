@@ -1,18 +1,22 @@
 import { useState, useEffect } from 'react';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../firebase';
+import {
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider,
+  signOut,
+} from 'firebase/auth';
+import { auth, googleProvider } from '../firebase';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 export default function Login() {
-  const { user } = useAuth(); // ✅ Access logged-in user from context
+  const { user } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // ✅ If user is already logged in, redirect to homepage
   useEffect(() => {
     if (user) {
       navigate('/');
@@ -29,7 +33,7 @@ export default function Login() {
       const user = userCredential.user;
 
       if (!user.emailVerified) {
-        await auth.signOut();
+        await signOut(auth);
         setError('Please verify your email before logging in.');
         setLoading(false);
         return;
@@ -37,10 +41,26 @@ export default function Login() {
 
       navigate('/');
     } catch (err: any) {
-      console.error('Login error:', err);
       setError(err.message || 'Login failed.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loginWithGoogle = async () => {
+    setError('');
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+
+      if (!user.emailVerified) {
+        // For Google sign-in, emails are usually verified
+        console.log('Google login - email verified:', user.emailVerified);
+      }
+
+      navigate('/');
+    } catch (err: any) {
+      setError(err.message || 'Google login failed.');
     }
   };
 
@@ -67,6 +87,7 @@ export default function Login() {
               type="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
+              required
             />
           </div>
 
@@ -78,6 +99,7 @@ export default function Login() {
               type="password"
               value={password}
               onChange={e => setPassword(e.target.value)}
+              required
             />
           </div>
 
@@ -88,8 +110,25 @@ export default function Login() {
           >
             {loading ? 'Logging in...' : 'Login'}
           </button>
+
+          {/* Google Login Button */}
+          <button
+            onClick={loginWithGoogle}
+            className="w-full flex items-center justify-center gap-2 bg-white text-gray-800 font-medium py-2 rounded-md hover:bg-gray-100 transition-all"
+          >
+            <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="h-5 w-5" />
+            Continue with Google
+          </button>
         </div>
 
+        {/* Forgot Password Link */}
+        <p className="text-right text-sm text-blue-400 mt-4">
+          <Link to="/forgot-password" className="hover:underline">
+            Forgot your password?
+          </Link>
+        </p>
+
+        {/* Sign Up Link */}
         <p className="text-center text-sm text-gray-400 mt-6">
           Don’t have an account?{' '}
           <Link to="/signup" className="text-pink-500 hover:underline">
