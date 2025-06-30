@@ -34,7 +34,7 @@ const Profile: React.FC = () => {
 
       const updatedUserData = {
         ...data,
-        [`used_${todayKey}`]: usedToday,
+        [usageKey]: usedToday,
         generationsLeft,
       };
 
@@ -83,9 +83,7 @@ const Profile: React.FC = () => {
   const todayKey = new Date().toISOString().split('T')[0];
   const usedToday = userData?.[`used_${todayKey}`] || 0;
 
-  const dailyLimit =
-    plan === 'yearly' ? 100 : plan === 'monthly' ? 50 : 5;
-
+  const dailyLimit = plan === 'yearly' ? 100 : plan === 'monthly' ? 50 : 5;
   const generationsLeft = dailyLimit - usedToday;
 
   return (
@@ -103,10 +101,10 @@ const Profile: React.FC = () => {
           <p><strong>Subscription Plan:</strong> {plan || 'None'}</p>
         </div>
 
-        <div className="flex space-x-4">
+        <div className="flex flex-wrap gap-4">
           {plan ? (
             showConfirm ? (
-              <div className="space-x-4">
+              <>
                 <button
                   onClick={handleUnsubscribe}
                   className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded"
@@ -119,7 +117,7 @@ const Profile: React.FC = () => {
                 >
                   Cancel
                 </button>
-              </div>
+              </>
             ) : (
               <button
                 onClick={() => setShowConfirm(true)}
@@ -143,6 +141,16 @@ const Profile: React.FC = () => {
           >
             Logout
           </button>
+
+          {/* Change Password: Desktop Only */}
+          <div className="hidden md:block">
+            <button
+              onClick={() => navigate('/change-password')}
+              className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded"
+            >
+              Change Password
+            </button>
+          </div>
         </div>
       </div>
     </div>
