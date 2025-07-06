@@ -178,7 +178,7 @@ export const BRIGHT_ACCENT_STROKE_STROKE_WIDTH_MULTIPLIER = 2.5;
 export const BRIGHT_ACCENT_STROKE_FONT_WEIGHT = "bold";
 
 // Watermark Constants
-export const WATERMARK_TEXT = "Texotia Caption AI";
+export const WATERMARK_TEXT = "picturecaption.app";
 export const WATERMARK_OPACITY = 0.8; // 80% opacity
 export const WATERMARK_COLOR = "rgba(255, 255, 255, 0.8)"; // Semi-transparent white
 export const WATERMARK_FONT_FAMILY = "Arial, sans-serif";

@@ -54,7 +54,7 @@ const Header = () => {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-gray-900 text-white shadow">
       <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Texotica Caption AI</h1>
+        <h1 className="text-2xl font-bold">Picture Caption App</h1>
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-6">
