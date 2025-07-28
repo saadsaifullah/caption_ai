@@ -185,7 +185,7 @@ Your first step is to make a truly random choice for the difficulty level.
    The prefix string you created in step 3 immediately followed by a single newline character (\\n) immediately followed by The challenge description you devised in step 2.
 
    For example, if the prefix is "Easy Hotwife Challenge:" and the challenge description is "She has to wear a very revealing outfit.", your output string must be:
-   "Easy Hotwife Challenge:\\nShe has to wear a very revealing outfit."
+   "Easy Hotwife Challenge:She has to wear a very revealing outfit."
 
    There should be no characters before the prefix. There should be no characters after the challenge description.
 The final output string must strictly adhere to this "PREFIX\\nCHALLENGE_DESCRIPTION" format, using the difficulty you randomly chose in Step 1.`;
