@@ -46,8 +46,8 @@ export const EMOJI_COUNT_OPTIONS = [
   { value: EmojiCount.MANY, label: "Many (4-5)" },
 ];
 
-export const GEMINI_TEXT_MODEL = "models/gemini-pro-vision";
-export const GEMINI_MULTIMODAL_MODEL = "models/gemini-pro-vision";
+export const GEMINI_TEXT_MODEL = "models/gemini-1.5-flash";
+export const GEMINI_MULTIMODAL_MODEL = "models/gemini-1.5-flash";
 
 // Canvas text styling defaults
 export const TEXT_COLOR = "white";
