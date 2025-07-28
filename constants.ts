@@ -1,7 +1,7 @@
 
 import { CaptionLength, CaptionStyle, CaptionAppearanceStyle, EmojiCount } from './types';
 
-export const APP_TITLE = "Texotica Caption AI";
+export const APP_TITLE = "Picture Caption";
 
 export const DEFAULT_CAPTION_LENGTH = CaptionLength.MEDIUM;
 export const DEFAULT_CAPTION_STYLE = CaptionStyle.RANDOM; // Updated default

@@ -192,12 +192,11 @@ const CaptionTool: React.FC = () => {
     navigate
   ]);
 
-  const isGenerateButtonDisabled =
-    !imageBase64 ||
-    isLoadingImageDescription ||
-    isLoadingCaption ||
-    !(
-      (imageDescription && imageDescription.trim() !== '') ||
+    const isGenerateButtonDisabled =
+  isLoadingImageDescription ||
+  isLoadingCaption ||
+  !imageBase64 ||
+  (!imageDescription?.trim() && !inspirationText.trim()||
       (showSpicyImageMessage && inspirationText.trim() !== '')
     );
 
